@@ -17,9 +17,14 @@ export async function ingestDocument(documentId: string) {
 
 	if (error || !doc) return { error: error?.message ?? "Document not found" };
 
-	await supabase.from("documents").update({ status: DOCUMENT_STATUSES.PROCESSING }).eq("id", documentId);
+	await supabase
+		.from("documents")
+		.update({ status: DOCUMENT_STATUSES.PROCESSING })
+		.eq("id", documentId);
 	try {
-		const { data: blob, error: dlError } = await supabase.storage.from(DOCUMENTS_BUCKET).download(doc?.storage_path);
+		const { data: blob, error: dlError } = await supabase.storage
+			.from(DOCUMENTS_BUCKET)
+			.download(doc?.storage_path);
 		if (dlError || !blob) throw new Error(dlError?.message ?? "Download failed");
 		const buffer = new Uint8Array(await blob!.arrayBuffer());
 
@@ -39,25 +44,34 @@ export async function ingestDocument(documentId: string) {
 				content: c.content,
 				page: c.page,
 				chunk_index: c.chunkIndex,
-				embedding: embeddings[i]
-			}))
+				embedding: embeddings[i],
+			})),
 		);
 		if (insertError) throw new Error(insertError.message);
 
-		await supabase.from("documents").update({ status: DOCUMENT_STATUSES.READY }).eq("id", documentId);
+		await supabase
+			.from("documents")
+			.update({ status: DOCUMENT_STATUSES.READY })
+			.eq("id", documentId);
 		return {};
 	} catch (error) {
 		console.error("ingestDocument failed:", error);
-		await supabase.from("documents").update({ status: DOCUMENT_STATUSES.ERROR }).eq("id", documentId);
+		await supabase
+			.from("documents")
+			.update({ status: DOCUMENT_STATUSES.ERROR })
+			.eq("id", documentId);
 
 		return { error: error instanceof Error ? error.message : "Ingestion failed" };
 	}
 }
 
-export async function createDocument(input: { name: string; storagePath: string }): Promise<{ error?: string }> {
+export async function createDocument(input: {
+	name: string;
+	storagePath: string;
+}): Promise<{ error?: string }> {
 	const supabase = await createClient();
 	const {
-		data: { user }
+		data: { user },
 	} = await supabase.auth.getUser();
 
 	if (!user) {
@@ -69,7 +83,7 @@ export async function createDocument(input: { name: string; storagePath: string 
 		.insert({
 			user_id: user.id,
 			name: input.name,
-			storage_path: input.storagePath
+			storage_path: input.storagePath,
 		})
 		.select("id")
 		.single();
@@ -95,14 +109,16 @@ export async function removeDocument(id: string): Promise<{ error?: string }> {
 
 	if (fetchError || !doc) {
 		return {
-			error: fetchError?.message || "Not Found"
+			error: fetchError?.message || "Not Found",
 		};
 	}
 
 	const { error: errorDocumentDelete } = await supabase.from("documents").delete().eq("id", id);
 	if (errorDocumentDelete) return { error: errorDocumentDelete.message };
 
-	const { error: storageError } = await supabase.storage.from(DOCUMENTS_BUCKET).remove([doc.storage_path]);
+	const { error: storageError } = await supabase.storage
+		.from(DOCUMENTS_BUCKET)
+		.remove([doc.storage_path]);
 	if (storageError) console.error("orphan file:", storageError.message);
 
 	return {};
@@ -111,7 +127,11 @@ export async function removeDocument(id: string): Promise<{ error?: string }> {
 export async function getDocumentUrl(id: string): Promise<{ url?: string; error?: string }> {
 	const supabase = await createClient();
 
-	const { data: doc, error } = await supabase.from("documents").select("storage_path").eq("id", id).single();
+	const { data: doc, error } = await supabase
+		.from("documents")
+		.select("storage_path")
+		.eq("id", id)
+		.single();
 
 	if (error || !doc) {
 		return { error: error?.message || "Not Found" };

@@ -7,10 +7,12 @@ import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { createDocument, removeDocument } from "@/actions/documents";
 import { DOCUMENTS_BUCKET, MAX_FILE_SIZE, type DocumentRow } from "@/lib/documents";
-import { DocumentIcon, UploadIcon, CloseIcon } from "./icons";
 import { RemoveDocumentModal } from "./modals/RemoveDocument";
 import { Button } from "@/elements/button";
 import { DOCUMENT_STATUSES } from "@/constants/documents";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { DocumentIcon, UploadIcon, CloseIcon, InformationCircleIcon } from "@/assets/icons";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/elements/tooltip";
 
 function DocumentStatusBadge({ status }: { status: string }) {
 	const t = useT();
@@ -50,7 +52,13 @@ interface UploadZoneProps {
 	className?: string;
 }
 
-export function UploadZone({ userId, documents, handleSelectDocument, selectedDocId, className }: UploadZoneProps) {
+export function UploadZone({
+	userId,
+	documents,
+	handleSelectDocument,
+	selectedDocId,
+	className,
+}: UploadZoneProps) {
 	const t = useT();
 	const router = useRouter();
 	const [isUploading, startUpload] = useTransition();
@@ -104,7 +112,12 @@ export function UploadZone({ userId, documents, handleSelectDocument, selectedDo
 	};
 
 	return (
-		<aside className={cn("flex min-h-0 flex-col gap-4 rounded-2xl border border-border bg-background p-4 shadow-sm", className)}>
+		<aside
+			className={cn(
+				"flex min-h-0 flex-col gap-4 rounded-2xl border border-border bg-background p-4 shadow-sm",
+				className,
+			)}
+		>
 			<h2 className="text-sm font-medium text-foreground/80">{t("Workspace.documentsTitle")}</h2>
 
 			<label
@@ -122,7 +135,7 @@ export function UploadZone({ userId, documents, handleSelectDocument, selectedDo
 				className={cn(
 					"flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border px-4 py-8 text-center transition-colors hover:border-foreground/30 hover:bg-muted/40",
 					isDragging && "border-primary bg-primary/5",
-					isUploading && "pointer-events-none opacity-60"
+					isUploading && "pointer-events-none opacity-60",
 				)}
 			>
 				<input
@@ -146,7 +159,7 @@ export function UploadZone({ userId, documents, handleSelectDocument, selectedDo
 					</span>
 				) : (
 					<>
-						<UploadIcon className="size-6 text-foreground/40" />
+						<HugeiconsIcon icon={UploadIcon} className="size-6 text-foreground/40" />
 						<span className="text-sm font-medium">{t("Workspace.uploadTitle")}</span>
 						<span className="text-xs text-foreground/60">{t("Workspace.uploadHint")}</span>
 					</>
@@ -157,25 +170,42 @@ export function UploadZone({ userId, documents, handleSelectDocument, selectedDo
 
 			{documents.length === 0 ? (
 				<div className="flex flex-1 flex-col items-center justify-center gap-2 text-center text-foreground/40">
-					<DocumentIcon className="size-7" />
+					<HugeiconsIcon icon={DocumentIcon} className="size-6" />
 					<p className="text-xs">{t("Workspace.documentsEmpty")}</p>
 				</div>
 			) : (
 				<ul className="-mx-1 flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto px-1">
 					<li>
-						<button
-							type="button"
+						<div
+							role="button"
+							tabIndex={0}
 							onClick={() => handleSelectDocument(null)}
+							onKeyDown={(event) => {
+								if (event.key === "Enter" || event.key === " ") {
+									event.preventDefault();
+									handleSelectDocument(null);
+								}
+							}}
 							className={cn(
-								"flex w-full items-center gap-2 rounded-xl border px-3 py-2 text-left text-sm transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
+								"flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl border px-3 py-2 text-left text-sm transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
 								selectedDocId === null
 									? "border-primary bg-primary/5 text-primary"
-									: "border-border text-foreground/70 hover:bg-muted/50"
+									: "border-border text-foreground/70 hover:bg-muted/50",
 							)}
 						>
-							<DocumentIcon className="size-4 shrink-0" />
-							{t("Workspace.allDocuments")}
-						</button>
+							<div className="flex w-full items-center gap-2">
+								<HugeiconsIcon icon={DocumentIcon} className="size-6" />
+								{t("Workspace.allDocuments")}
+							</div>
+							<Tooltip>
+								<TooltipTrigger onClick={(event) => event.stopPropagation()}>
+									<HugeiconsIcon className="cursor-pointer" icon={InformationCircleIcon} />
+								</TooltipTrigger>
+								<TooltipContent>
+									<p>{t("Workspace.allDocumentsHint")}</p>
+								</TooltipContent>
+							</Tooltip>
+						</div>
 					</li>
 					{documents.map((document) => {
 						const isActive = selectedDocId === document.id;
@@ -193,10 +223,13 @@ export function UploadZone({ userId, documents, handleSelectDocument, selectedDo
 									}}
 									className={cn(
 										"group flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
-										isActive ? "border-primary bg-primary/5" : "border-border hover:bg-muted/50"
+										isActive ? "border-primary bg-primary/5" : "border-border hover:bg-muted/50",
 									)}
 								>
-									<DocumentIcon className={cn("size-4 shrink-0", isActive ? "text-primary" : "text-foreground/40")} />
+									<HugeiconsIcon
+										icon={DocumentIcon}
+										className={cn("size-6", isActive ? "text-primary" : "text-foreground/40")}
+									/>
 									<span className="min-w-0 flex-1 truncate text-sm">{document.name}</span>
 
 									<DocumentStatusBadge status={document.status} />
@@ -211,9 +244,9 @@ export function UploadZone({ userId, documents, handleSelectDocument, selectedDo
 											size="icon-sm"
 											aria-label="Remove"
 											disabled={isRemoving}
-											className="shrink-0 text-foreground/40 opacity-0 transition hover:text-destructive group-hover:opacity-100"
+											className="shrink-0 text-foreground/40 opacity-0 transition group-hover:opacity-100 hover:text-destructive"
 										>
-											<CloseIcon className="size-3.5" />
+											<HugeiconsIcon icon={CloseIcon} className="size-3.5" />
 										</Button>
 									</RemoveDocumentModal>
 								</div>
@@ -221,6 +254,16 @@ export function UploadZone({ userId, documents, handleSelectDocument, selectedDo
 						);
 					})}
 				</ul>
+			)}
+
+			{documents.length > 0 && selectedDocId === null && (
+				<div className="flex gap-2 rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs text-foreground/70 md:hidden">
+					<HugeiconsIcon
+						icon={InformationCircleIcon}
+						className="mt-0.5 size-4 shrink-0 text-primary"
+					/>
+					<p>{t("Workspace.allDocumentsInfo")}</p>
+				</div>
 			)}
 		</aside>
 	);

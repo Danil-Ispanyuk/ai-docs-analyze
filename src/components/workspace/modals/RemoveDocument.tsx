@@ -6,7 +6,7 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-	DialogTrigger
+	DialogTrigger,
 } from "@/elements/dialog";
 import { useT } from "@/i18n";
 import { type ReactElement } from "react";
@@ -30,7 +30,7 @@ export function RemoveDocumentModal({ children, documentTitle, onSubmit }: IRemo
 				</DialogHeader>
 				<DialogDescription>
 					{t("Workspace.modal.document.removeDescription", {
-						document: documentTitle
+						document: documentTitle,
 					})}
 				</DialogDescription>
 				<DialogFooter showCloseButton className="flex justify-between">

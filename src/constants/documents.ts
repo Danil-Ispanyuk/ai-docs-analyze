@@ -2,5 +2,5 @@ export const DOCUMENT_STATUSES = {
 	PENDING: "pending",
 	PROCESSING: "processing",
 	READY: "ready",
-	ERROR: "error"
+	ERROR: "error",
 } as const;

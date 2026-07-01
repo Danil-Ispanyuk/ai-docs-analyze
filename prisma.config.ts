@@ -8,14 +8,14 @@ config({ path: ".env.local" });
 config();
 
 export default defineConfig({
-  schema: "prisma/schema.prisma",
-  migrations: {
-    path: "prisma/migrations",
-  },
-  datasource: {
-    // Migrations use the DIRECT (non-pooled, port 5432) connection.
-    // The runtime client uses the pooled DATABASE_URL via the adapter
-    // in shared/api/prisma.ts.
-    url: env("DIRECT_URL"),
-  },
+	schema: "prisma/schema.prisma",
+	migrations: {
+		path: "prisma/migrations",
+	},
+	datasource: {
+		// Migrations use the DIRECT (non-pooled, port 5432) connection.
+		// The runtime client uses the pooled DATABASE_URL via the adapter
+		// in shared/api/prisma.ts.
+		url: env("DIRECT_URL"),
+	},
 });
