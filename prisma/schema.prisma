@@ -1,0 +1,70 @@
+// Prisma owns the schema + migrations only.
+// All user-facing data access goes through the Supabase client under RLS
+// (see CLAUDE.md "Security"). Prisma connects as a privileged role and
+// bypasses RLS, so it must not be used for per-user reads/writes.
+//
+// The `auth` schema (auth.users, auth.uid()) is managed by Supabase, not Prisma.
+// `public.profiles` mirrors auth.users; the FK + trigger + RLS live in
+// prisma/sql/auth_setup.sql (Prisma migrate can't model the auth schema).
+//
+// Prisma 7: connection URLs live in prisma.config.ts (Migrate) and the
+// driver adapter in shared/api/prisma.ts (runtime). The datasource block
+// no longer takes a `url`.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Profile {
+  // Same value as auth.users.id (set by the handle_new_user trigger).
+  id        String   @id @db.Uuid
+  email     String?
+  fullName  String?  @map("full_name")
+  avatarUrl String?  @map("avatar_url")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("profiles")
+}
+
+model Document {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  name        String
+  storagePath String   @map("storage_path")
+  mimeType    String   @default("application/pdf") @map("mime_type")
+  // pending | processing | ready | error
+  status      String   @default("pending")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  chunks Chunk[]
+
+  @@index([userId])
+  @@map("documents")
+}
+
+model Chunk {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  documentId String   @map("document_id") @db.Uuid
+  // Denormalized from the parent document so the vector search can filter by
+  // user_id under RLS (see CLAUDE.md "Security").
+  userId     String   @map("user_id") @db.Uuid
+  content    String
+  page       Int?
+  chunkIndex Int      @map("chunk_index")
+  // 1536 dims = OpenAI text-embedding-3-small. The vector type, index, RLS and
+  // match function live in prisma/sql/ragSetup.sql.
+  embedding  Unsupported("vector(1536)")?
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([documentId])
+  @@map("chunks")
+}
