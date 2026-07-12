@@ -5,7 +5,6 @@ import { PLAN_TYPES } from "@/shared/constants/general";
 import { Button } from "@/shared/ui/button";
 import { LogoutButton } from "./LogoutButton";
 import { Logo } from "./Logo";
-import { SearchInput } from "./SearchInput";
 
 type HeaderProps = {
 	isGuest: boolean;
@@ -19,7 +18,6 @@ export function Header({ isGuest, email, plan }: HeaderProps) {
 	return (
 		<header className="flex items-center justify-between gap-4 border-b border-border bg-background/80 px-6 py-3 backdrop-blur">
 			<Logo />
-			<SearchInput placeholder={t("Workspace.searchPlaceholder")} />
 			<div className="flex items-center gap-3">
 				{isGuest ? (
 					<Button size="sm" render={<Link href="/save-account" />}>
@@ -31,7 +29,7 @@ export function Header({ isGuest, email, plan }: HeaderProps) {
 				<span className="hidden text-sm text-foreground/60 sm:inline">
 					{isGuest ? t("Workspace.guestSession") : t("Workspace.signedInAs", { email })}
 				</span>
-				{ !isGuest && <LogoutButton /> }
+				{!isGuest && <LogoutButton />}
 			</div>
 		</header>
 	);

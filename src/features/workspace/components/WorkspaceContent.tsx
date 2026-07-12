@@ -1,11 +1,11 @@
 import { createClient } from "@/shared/config/supabase/server";
 import { LandingContent } from "@/features/landing/components/LandingContent";
-import { PreviewContainer } from "./Container";
+import { PreviewContainer } from "./PreviewContainer";
 import { getCurrentUser } from "@/features/auth/service";
 import { PLAN_TYPES } from "@/shared/constants/general";
 import { WorkspaceLayout } from "@/layouts";
 
-export async function HomeContent() {
+export async function WorkspaceContent() {
 	const supabase = await createClient();
 	const user = await getCurrentUser();
 
@@ -25,7 +25,6 @@ export async function HomeContent() {
 		.single();
 
 	const plan = profile?.plan ?? PLAN_TYPES.GUEST;
-	console.log("profile", profile, "plan", plan, "user", user);
 
 	const { data: usageRows } = await supabase.rpc("get_usage");
 	const usageRow = usageRows?.[0] ?? { tokens_used: 0, requests_used: 0 };

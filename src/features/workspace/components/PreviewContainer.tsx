@@ -23,7 +23,6 @@ export function PreviewContainer({ userId, plan, usage, documents }: PreviewCont
 	const t = useT();
 	const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
 	const [selectedPage, setSelectedPage] = useState<number | null>(null);
-	const [selectedHighlights, setSelectedHighlights] = useState<string[]>([]);
 	const [tab, setTab] = useState<Tab>("documents");
 	const selectedDoc = documents.find((doc) => doc.id === selectedDocId) ?? null;
 	const scopeName = selectedDoc?.name ?? t("Workspace.allDocuments");
@@ -31,14 +30,12 @@ export function PreviewContainer({ userId, plan, usage, documents }: PreviewCont
 	const handleSelectDocument = (id: string | null) => {
 		setSelectedDocId(id);
 		setSelectedPage(null);
-		setSelectedHighlights([]);
 		if (id) setTab("preview");
 	};
 
-	const handleSourceClick = (documentId: string, page: number | null, snippets: string[]) => {
+	const handleSourceClick = (documentId: string, page: number | null) => {
 		setSelectedDocId(documentId);
 		setSelectedPage(page);
-		setSelectedHighlights(snippets);
 		setTab("preview");
 	};
 
@@ -83,12 +80,7 @@ export function PreviewContainer({ userId, plan, usage, documents }: PreviewCont
 					"min-h-0 overflow-hidden rounded-2xl border border-border bg-muted/30 shadow-sm md:block",
 				)}
 			>
-				<FilePreview
-					documentId={selectedDocId}
-					name={selectedDoc?.name}
-					page={selectedPage}
-					highlights={selectedHighlights}
-				/>
+				<FilePreview documentId={selectedDocId} name={selectedDoc?.name} page={selectedPage} />
 			</div>
 
 			<ChatZone

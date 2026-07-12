@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useT } from "@/shared/config/i18n";
 import { cn } from "@/shared/lib/utils";
 import { createClient } from "@/shared/config/supabase/client";
-import { createDocument, removeDocument } from "@/features/documents/actions";
+import { createDocument, ingestDocument, removeDocument } from "@/features/documents/actions";
 import { DOCUMENTS_BUCKET, type DocumentRow } from "@/features/documents/service";
 import { getPlanLimits, formatStorage } from "@/features/billing/service";
 import { toast } from "@/shared/lib/toast";
@@ -14,11 +14,23 @@ import { UsageMeter } from "@/features/billing/components/UsageMeter";
 import { Button } from "@/shared/ui/button";
 import { DOCUMENT_STATUSES } from "@/shared/constants/general";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { DocumentIcon, UploadIcon, CloseIcon, InformationCircleIcon } from "@/shared/assets/icons";
+import {
+	DocumentIcon,
+	UploadIcon,
+	CloseIcon,
+	InformationCircleIcon,
+	RetryIcon,
+} from "@/shared/assets/icons";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 
 function DocumentStatusBadge({ status }: { status: string }) {
 	const t = useT();
+
+	if (status === DOCUMENT_STATUSES.PENDING) {
+		return (
+			<span className="shrink-0 text-xs text-foreground/50">{t("Workspace.statusPending")}</span>
+		);
+	}
 
 	if (status === DOCUMENT_STATUSES.PROCESSING) {
 		return (
@@ -78,6 +90,7 @@ export function UploadZone({
 	const isBlocked = atFileLimit || atStorageLimit;
 	const [isUploading, startUpload] = useTransition();
 	const [isRemoving, startRemove] = useTransition();
+	const [isReingesting, startReingest] = useTransition();
 	const [isDragging, setIsDragging] = useState(false);
 
 	const handleFile = (file: File) => {
@@ -110,11 +123,30 @@ export function UploadZone({
 
 			const result = await createDocument({ name: file.name, storagePath });
 			router.refresh();
-			if (result?.error) {
-				toast.error(result.error);
-			} else {
-				toast.success(t("Workspace.uploadSuccess"));
+			if (result.error || !result.documentId) {
+				toast.error(result.error ?? t("Workspace.uploadError"));
+				return;
 			}
+			toast.success(t("Workspace.uploadQueued"));
+			// Ingest without blocking the upload transition; refresh when it settles.
+			runIngestion(result.documentId);
+		});
+	};
+
+	// Fire-and-forget ingestion: the doc is already visible as `pending`, so we just
+	// refresh once it flips to ready/error rather than blocking the UI on it.
+	const runIngestion = (documentId: string) => {
+		ingestDocument(documentId).then((res) => {
+			if (res?.error) toast.error(t("Workspace.uploadError"));
+			router.refresh();
+		});
+	};
+
+	const handleReingest = (id: string) => {
+		startReingest(async () => {
+			const res = await ingestDocument(id);
+			if (res?.error) toast.error(t("Workspace.uploadError"));
+			router.refresh();
 		});
 	};
 
@@ -288,6 +320,23 @@ export function UploadZone({
 									<span className="min-w-0 flex-1 truncate text-sm">{document.name}</span>
 
 									<DocumentStatusBadge status={document.status} />
+
+									{document.status === DOCUMENT_STATUSES.ERROR && (
+										<Button
+											type="button"
+											variant="ghost"
+											size="icon-sm"
+											aria-label={t("Workspace.retry")}
+											disabled={isReingesting}
+											onClick={(event) => {
+												event.stopPropagation();
+												handleReingest(document.id);
+											}}
+											className="shrink-0 text-foreground/40 transition hover:text-primary"
+										>
+											<HugeiconsIcon icon={RetryIcon} className="size-3.5" />
+										</Button>
+									)}
 
 									<RemoveDocumentModal
 										onSubmit={() => handleRemove(document.id)}

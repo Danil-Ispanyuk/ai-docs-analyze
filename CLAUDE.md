@@ -46,7 +46,7 @@ No test runner is set up. Husky pre-commit runs `lint-staged` (Prettier on stage
 - Models: `text-embedding-3-small` (1536 dims) for embeddings; `gpt-4o-mini` for answers
 - PDF: `unpdf` for server-side text extraction; `react-pdf` for the client preview. Chunking is hand-written (`src/lib/chunk.ts`) — do not add LangChain / LlamaIndex.
 - i18n: `next-intl` with a cookie-based locale (no URL routing)
-- Forms: `react-hook-form` + `zod` (schemas in `src/lib/validators.ts`); TanStack Query on the client; HugeIcons re-exported from `src/assets/icons`
+- Forms: `react-hook-form` + `zod` (schemas in `src/lib/validators.ts`); HugeIcons re-exported from `src/assets/icons`
 - No separate backend: use Next.js route handlers / server actions.
 
 ## Architecture — RAG, two pipelines over one vector store

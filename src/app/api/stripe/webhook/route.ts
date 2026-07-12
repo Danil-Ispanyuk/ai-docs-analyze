@@ -13,15 +13,33 @@ async function syncSubscription(subscription: Stripe.Subscription) {
 	const admin = createAdminClient();
 	const customerId =
 		typeof subscription.customer === "string" ? subscription.customer : subscription.customer.id;
+	const userId = subscription.metadata?.userId;
 
-	await admin
-		.from("profiles")
-		.update({
-			stripe_subscription_id: subscription.id,
-			subscription_status: subscription.status,
-			plan: planFromSubscriptionStatus(subscription.status),
-		})
-		.eq("stripe_customer_id", customerId);
+	const update = {
+		stripe_customer_id: customerId,
+		stripe_subscription_id: subscription.id,
+		subscription_status: subscription.status,
+		plan: planFromSubscriptionStatus(subscription.status),
+	};
+
+	// Match by the Stripe customer id persisted at checkout; fall back to the userId
+	// stashed in subscription metadata so the plan still lands (and the customer id is
+	// backfilled) if the profile never recorded the customer id (TD-18). Returning the
+	// affected rows lets us detect — and log — a miss instead of silently no-op'ing.
+	const query = userId
+		? admin
+				.from("profiles")
+				.update(update)
+				.or(`stripe_customer_id.eq.${customerId},id.eq.${userId}`)
+		: admin.from("profiles").update(update).eq("stripe_customer_id", customerId);
+
+	const { data, error } = await query.select("id");
+	if (error) throw error;
+	if (!data || data.length === 0) {
+		console.error(
+			`syncSubscription: no profile matched (customer=${customerId}, user=${userId ?? "n/a"})`,
+		);
+	}
 }
 
 export async function POST(req: Request) {
@@ -46,9 +64,7 @@ export async function POST(req: Request) {
 			case "checkout.session.completed": {
 				const session = event.data.object;
 				if (session.subscription) {
-					const subscription = await stripe.subscriptions.retrieve(
-						session.subscription as string,
-					);
+					const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
 					await syncSubscription(subscription);
 				}
 				break;

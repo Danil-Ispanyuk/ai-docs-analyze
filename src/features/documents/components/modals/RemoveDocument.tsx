@@ -11,7 +11,7 @@ import {
 import { useT } from "@/shared/config/i18n";
 import { type ReactElement } from "react";
 
-interface IRemoveDocument {
+interface RemoveDocumentModalProps {
 	documentTitle: string;
 	onSubmit: () => void;
 	// The trigger element (e.g. the ✕ button). Passed via `render` so Base UI
@@ -19,7 +19,11 @@ interface IRemoveDocument {
 	children: ReactElement;
 }
 
-export function RemoveDocumentModal({ children, documentTitle, onSubmit }: IRemoveDocument) {
+export function RemoveDocumentModal({
+	children,
+	documentTitle,
+	onSubmit,
+}: RemoveDocumentModalProps) {
 	const t = useT();
 	return (
 		<Dialog>

@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Document Analyzer
 
-## Getting Started
+A RAG "chat with your documents" assistant. Upload your own PDFs and ask questions
+in natural language — the app answers **only** from those documents and cites the
+exact file and page for every answer. If the answer isn't in your documents, it says
+so instead of guessing.
 
-First, run the development server:
+Vertical: **HR / onboarding assistant** (company policies, handbooks).
+
+## How it works
+
+Two pipelines over one vector store:
+
+- **Ingestion** (once per document): upload → store the file in Supabase Storage →
+  extract text → split into overlapping chunks → embed each chunk → save the chunk
+  text, embedding, and metadata (file name, page) into `pgvector`.
+- **Query** (per question): embed the question → cosine-similarity search in
+  `pgvector` for the top-k chunks → build a prompt from those chunks → stream the
+  answer with source citations. The model only ever sees the retrieved chunks, never
+  whole documents.
+
+Every document and chunk carries a `user_id` and is protected by row-level security,
+so vector search never leaks another user's content.
+
+## Stack
+
+- Next.js 16 (App Router) + TypeScript
+- Tailwind CSS v4 + shadcn/ui on Base UI primitives
+- Vercel AI SDK v7 (`ai`, `@ai-sdk/openai`, `@ai-sdk/react`)
+- Supabase: Postgres + `pgvector` + Auth + Storage (RLS on all user data)
+- Prisma 7 for schema and migrations only
+- OpenAI `text-embedding-3-small` (embeddings) and `gpt-4o-mini` (answers)
+- PDF: `unpdf` (server-side extraction), `react-pdf` (client preview)
+- i18n via `next-intl`; Stripe for plan limits and billing
+
+## Getting started
+
+Requires [pnpm](https://pnpm.io) (npm/yarn are not supported).
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+cp .env.local.example .env.local   # then fill in the values below
+pnpm dev                           # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Environment
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Set these in `.env.local` (see `.env.local.example`):
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `OPENAI_API_KEY`
+- `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY` (server-only)
+- `DATABASE_URL` (pooled, runtime), `DIRECT_URL` (migrations)
+- Stripe keys for billing (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, …)
 
-## Learn More
+The Supabase-specific wiring that Prisma can't model (RLS policies, auth/storage
+triggers, the `pgvector` index and `match_chunks` function) lives in `prisma/sql/*.sql`
+and is applied by hand in the Supabase SQL Editor.
 
-To learn more about Next.js, take a look at the following resources:
+## Scripts
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `pnpm dev` / `pnpm build` / `pnpm start` — develop / build / serve
+- `pnpm lint` — ESLint
+- `pnpm format` / `pnpm format:check` — Prettier
+- `pnpm prisma:generate` — regenerate the Prisma client
+- `pnpm prisma:deploy` — apply migrations

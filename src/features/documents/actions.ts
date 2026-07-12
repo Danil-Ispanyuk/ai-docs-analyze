@@ -70,7 +70,7 @@ export async function ingestDocument(documentId: string) {
 export async function createDocument(input: {
 	name: string;
 	storagePath: string;
-}): Promise<{ error?: string }> {
+}): Promise<{ documentId?: string; error?: string }> {
 	const supabase = await createClient();
 	const user = await getCurrentUser();
 	const isGuest = user?.is_anonymous ?? false;
@@ -137,10 +137,11 @@ export async function createDocument(input: {
 		return { error: error.message };
 	}
 
-	const ingest = await ingestDocument(data.id);
-	if (ingest?.error) return { error: ingest.error };
-
-	return {};
+	// Ingestion is a separate step, triggered by the client after this returns, so the
+	// upload request finishes fast and a large PDF doesn't risk a serverless timeout
+	// here. The row starts as `pending`; ingestDocument moves it to processing → ready
+	// (or error), and the client re-ingests failed docs on demand.
+	return { documentId: data.id };
 }
 
 export async function removeDocument(id: string): Promise<{ error?: string }> {
@@ -158,13 +159,16 @@ export async function removeDocument(id: string): Promise<{ error?: string }> {
 		};
 	}
 
-	const { error: errorDocumentDelete } = await supabase.from("documents").delete().eq("id", id);
-	if (errorDocumentDelete) return { error: errorDocumentDelete.message };
-
+	// Remove the storage object before the DB row so a storage failure aborts the
+	// delete instead of orphaning the file (the row still points at it, so it can be
+	// retried). A missing object is not an error for Storage, so this is idempotent.
 	const { error: storageError } = await supabase.storage
 		.from(DOCUMENTS_BUCKET)
 		.remove([doc.storage_path]);
-	if (storageError) console.error("orphan file:", storageError.message);
+	if (storageError) return { error: storageError.message };
+
+	const { error: errorDocumentDelete } = await supabase.from("documents").delete().eq("id", id);
+	if (errorDocumentDelete) return { error: errorDocumentDelete.message };
 
 	return {};
 }

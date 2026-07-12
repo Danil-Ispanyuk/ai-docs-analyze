@@ -1,5 +1,5 @@
-import { HomeContent } from "@/features/workspace/components/WorkspaceContent";
+import { WorkspaceContent } from "@/features/workspace/components/WorkspaceContent";
 
 export default async function Home() {
-	return <HomeContent />;
+	return <WorkspaceContent />;
 }

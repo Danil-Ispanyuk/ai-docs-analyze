@@ -2,6 +2,7 @@ export {
 	File01Icon as DocumentIcon,
 	CloudUploadIcon as UploadIcon,
 	Cancel01Icon as CloseIcon,
+	ArrowReloadHorizontalIcon as RetryIcon,
 	Message01Icon as ChatIcon,
 	SentIcon as SendIcon,
 	InformationCircleIcon,

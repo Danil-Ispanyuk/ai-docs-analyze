@@ -5,6 +5,7 @@ import {
 	createUIMessageStream,
 	createUIMessageStreamResponse,
 } from "ai";
+import { after } from "next/server";
 import { createClient } from "@/shared/config/supabase/server";
 import { embedChunks } from "@/features/documents/lib/embedding";
 import { getPlanLimits } from "@/features/billing/service";
@@ -12,6 +13,12 @@ import type { ChatMessage, Source } from "@/features/chat/types";
 import { getCurrentUser } from "@/features/auth/service";
 
 export const maxDuration = 30;
+
+// Per-user burst limit for chat: at most RATE_LIMIT_MAX requests per
+// RATE_LIMIT_WINDOW_SECONDS, enforced in the DB (see prisma/sql/rateLimitSetup.sql).
+// This sits on top of the cumulative plan caps below (get_usage / plan budget).
+const RATE_LIMIT_MAX = 10;
+const RATE_LIMIT_WINDOW_SECONDS = 60;
 
 type Matched = {
 	document_id: string;
@@ -25,6 +32,13 @@ export async function POST(req: Request) {
 	const supabase = await createClient();
 	const user = await getCurrentUser();
 	if (!user) return new Response("Unauthorized", { status: 401 });
+
+	const { data: rateAllowed, error: rateError } = await supabase.rpc("check_chat_rate", {
+		p_max: RATE_LIMIT_MAX,
+		p_window_seconds: RATE_LIMIT_WINDOW_SECONDS,
+	});
+	if (rateError) return new Response(rateError.message, { status: 500 });
+	if (!rateAllowed) return new Response("Too many requests. Please slow down.", { status: 429 });
 
 	const { data: profile } = await supabase
 		.from("profiles")
@@ -67,15 +81,11 @@ export async function POST(req: Request) {
 	const sourcesByKey = new Map<string, Source>();
 	for (const chunk of chunks) {
 		const key = `${chunk.document_id}:${chunk.page}`;
-		const existing = sourcesByKey.get(key);
-		if (existing) {
-			existing.snippets.push(chunk.content);
-		} else {
+		if (!sourcesByKey.has(key)) {
 			sourcesByKey.set(key, {
 				documentId: chunk.document_id,
 				name: chunk.name,
 				page: chunk.page,
-				snippets: [chunk.content],
 			});
 		}
 	}
@@ -93,23 +103,39 @@ export async function POST(req: Request) {
 		context || "(no relevant context found)",
 	].join("\n");
 
+	// Meter the chat cost (prompt + completion tokens) against the plan budget. The DB
+	// write runs in an after() hook — not inline in onFinish — because onFinish fires as
+	// the stream closes, and the serverless function could otherwise be torn down before
+	// the RPC lands, so the counter never moved (TD-19). after() keeps the function alive
+	// until the write completes. Embedding tokens aren't counted — they're negligible.
+	let resolveTokens!: (tokens: number) => void;
+	const tokensUsed = new Promise<number>((resolve) => {
+		resolveTokens = resolve;
+	});
+
+	after(async () => {
+		const tokens = await tokensUsed;
+		const { error: meterError } = await supabase.rpc("increment_usage", { p_tokens: tokens });
+		if (meterError) console.error("increment_usage failed:", meterError.message);
+	});
+
 	const stream = createUIMessageStream<ChatMessage>({
 		execute: async ({ writer }) => {
-			// джерела летять як data-part (id → потрапляє в message.parts на клієнті)
+			// Send the sources as a data-part; the id routes it into message.parts on the client.
 			writer.write({ type: "data-sources", id: "sources", data: sources });
 
 			const result = streamText({
 				model: openai("gpt-4o-mini"),
 				instructions,
 				messages: await convertToModelMessages(messages),
-				// Meter the chat cost (prompt + completion tokens) against the plan
-				// budget. Embedding tokens aren't counted yet — they're negligible.
-				onFinish: async ({ totalUsage }) => {
-					const tokens =
+				onFinish: ({ totalUsage }) => {
+					resolveTokens(
 						totalUsage?.totalTokens ??
-						(totalUsage?.inputTokens ?? 0) + (totalUsage?.outputTokens ?? 0);
-					await supabase.rpc("increment_usage", { p_tokens: tokens });
+							(totalUsage?.inputTokens ?? 0) + (totalUsage?.outputTokens ?? 0),
+					);
 				},
+				// Still settle the meter (with 0) if the model call errors, so after() never hangs.
+				onError: () => resolveTokens(0),
 			});
 			writer.merge(result.toUIMessageStream());
 		},

@@ -19,23 +19,33 @@ by this file; it's the one that gets updated as debt is paid.
 
 ## Summary (by impact)
 
-| ID | Title | Area | Prio | Effort | Status |
-|----|-------|------|------|--------|--------|
-| TD-2  | `match_chunks` drift — repo SQL can't rebuild the deployed DB | `ragSetup.sql` ↔ `route.ts` | 🔴 | M | open |
-| TD-3  | Ingestion is synchronous inside the upload action | `actions/documents.ts` | 🟡 | L | open |
-| TD-10 | No rate limiting / cost controls on `/api/chat` | `api/chat/route.ts` | 🟡 | M | open |
-| TD-12 | Signed preview URLs expire silently (10 min) | `actions/documents.ts` | 🟡 | M | open |
-| TD-6  | i18n / language leaks (hardcoded Cyrillic, comments, typo) | multiple | 🟡 | S | open |
-| TD-8  | No tests, no CI | repo-wide | 🟡 | L | open |
-| TD-1  | Inline `Spinner` in `PdfViewer.tsx` (one-component-per-file) | `components/workspace/PdfViewer.tsx` | 🟢 | S | open |
-| TD-4  | Unused dependency `@tanstack/react-query` | `package.json` | 🟢 | S | open |
-| TD-5  | Dead runtime module `src/lib/prisma.ts` | `lib/prisma.ts` | 🟢 | S | open |
-| TD-7  | Decorative `SearchInput` (no behavior) | `components/general` | 🟢 | S | open |
-| TD-9  | Stock create-next-app boilerplate never replaced | `README.md`, `layout.tsx`, `public/` | 🟢 | S | open |
-| TD-11 | Deletion ordering can orphan storage files | `actions/documents.ts` | 🟢 | M | open |
-| TD-13 | Chunker is purely character-based | `lib/chunk.ts` | 🟢 | M | open |
-| TD-14 | Minor naming / inert-class inconsistencies | multiple | 🟢 | S | open |
-| TD-15 | Three fonts loaded, only `font-sans` used | `app/layout.tsx` | 🟢 | S | open |
+Code-complete items are `done`. The four 🔴 infra items are `verify`: their code + SQL
+are in the repo, but they must be applied/confirmed against the live Supabase/Stripe
+setup (run the migration, paste the `prisma/sql` scripts, `stripe listen`, a fresh
+sign-up) before they're truly paid.
+
+| ID    | Title                                                         | Area                                    | Prio | Effort | Status |
+| ----- | ------------------------------------------------------------- | --------------------------------------- | ---- | ------ | ------ |
+| TD-18 | Plan not updated after successful payment                     | Stripe webhook / checkout               | 🔴   | M      | verify |
+| TD-19 | Chat token usage not counted (metering doesn't land)          | `api/chat/route.ts` ↔ `increment_usage` | 🔴   | M      | verify |
+| TD-20 | `profiles` row empty after account creation                   | `auth_setup.sql` trigger                | 🔴   | M      | verify |
+| TD-2  | `match_chunks` drift — repo SQL can't rebuild the deployed DB | `ragSetup.sql` ↔ `route.ts`             | 🔴   | M      | verify |
+| TD-3  | Ingestion is synchronous inside the upload action             | `actions/documents.ts`                  | 🟡   | L      | done   |
+| TD-10 | No rate limiting / cost controls on `/api/chat`               | `api/chat/route.ts`                     | 🟡   | M      | verify |
+| TD-12 | Signed preview URLs expire silently (10 min)                  | `actions/documents.ts`                  | 🟡   | M      | done   |
+| TD-6  | i18n / language leaks (hardcoded Cyrillic, comments, typo)    | multiple                                | 🟡   | S      | done   |
+| TD-8  | No tests, no CI                                               | repo-wide                               | 🟡   | L      | done   |
+| TD-1  | Inline `Spinner` in `PdfViewer.tsx` (one-component-per-file)  | `components/workspace/PdfViewer.tsx`    | 🟢   | S      | done   |
+| TD-4  | Unused dependency `@tanstack/react-query`                     | `package.json`                          | 🟢   | S      | done   |
+| TD-5  | Dead runtime module `src/lib/prisma.ts`                       | `lib/prisma.ts`                         | 🟢   | S      | done   |
+| TD-7  | Decorative `SearchInput` (no behavior)                        | `components/general`                    | 🟢   | S      | done   |
+| TD-9  | Stock create-next-app boilerplate never replaced              | `README.md`, `layout.tsx`, `public/`    | 🟢   | S      | done   |
+| TD-11 | Deletion ordering can orphan storage files                    | `actions/documents.ts`                  | 🟢   | M      | done   |
+| TD-13 | Chunker is purely character-based                             | `lib/chunk.ts`                          | 🟢   | M      | done   |
+| TD-14 | Minor naming / inert-class inconsistencies                    | multiple                                | 🟢   | S      | done   |
+| TD-15 | Three fonts loaded, only `font-sans` used                     | `app/layout.tsx`                        | 🟢   | S      | done   |
+| TD-16 | Drop cited-chunk text highlighting — jump to page only        | citation / PDF preview                  | 🟡   | S      | done   |
+| TD-17 | Collapse source chips to one page + `+N` picker               | `chat` / `workspace`                    | 🟡   | M      | done   |
 
 ## Items
 
@@ -48,14 +58,14 @@ by this file; it's the one that gets updated as debt is paid.
 - **Fix:** Extract to `src/components/general/Spinner.tsx`, wire through the `general`
   barrel, import into `PdfViewer`. (The `useTransition` spinner idiom in TD-14 could
   reuse the same component.)
-- **Effort:** S · **Priority:** 🟢 low · **Status:** open
+- **Effort:** S · **Priority:** 🟢 low · **Status:** done
 
 ### TD-2 · `match_chunks` drift — repo SQL can't rebuild the deployed DB
 
 - **Area:** `prisma/sql/ragSetup.sql` ↔ `src/app/api/chat/route.ts`
 - **Problem:** The checked-in SQL defines
   `match_chunks(query_embedding, match_count)` returning `(id, document_id, content,
-  page, similarity)`. The app calls it with **4 args** (`match_count`,
+page, similarity)`. The app calls it with **4 args** (`match_count`,
   `match_threshold: 0.2`, `document_ids` — `route.ts:41–46`) and reads a **`name`
   column** (`route.ts:58, 63`) that the repo return table doesn't have. The deployed
   function was updated in the Supabase SQL Editor without back-porting to the repo.
@@ -64,9 +74,9 @@ by this file; it's the one that gets updated as debt is paid.
   breaking chat. The source of truth for the security-sensitive RAG search is out of
   sync; `CLAUDE.md` explicitly requires keeping these aligned.
 - **Fix:** Reconcile `ragSetup.sql` to the deployed signature — add `match_threshold`
-  + `document_ids` params and their `where` filters, and the `name` column (join to
-  `documents`). Verify against the live function in the SQL Editor before overwriting.
-- **Effort:** M · **Priority:** 🔴 high · **Status:** open
+  - `document_ids` params and their `where` filters, and the `name` column (join to
+    `documents`). Verify against the live function in the SQL Editor before overwriting.
+- **Effort:** M · **Priority:** 🔴 high · **Status:** done (code+SQL ready — verify on live Supabase/Stripe)
 
 ### TD-3 · Ingestion is synchronous inside the upload server action
 
@@ -78,7 +88,7 @@ by this file; it's the one that gets updated as debt is paid.
   `ingestDocument` is exported and standalone-capable).
 - **Fix:** Move ingestion to a background/queued path; the `status` column already
   supports it. Add a re-ingest action for `error` docs.
-- **Effort:** L · **Priority:** 🟡 medium · **Status:** open
+- **Effort:** L · **Priority:** 🟡 medium · **Status:** done
 
 ### TD-4 · Unused dependency: `@tanstack/react-query`
 
@@ -87,7 +97,7 @@ by this file; it's the one that gets updated as debt is paid.
   anywhere — currently dead surface.
 - **Fix:** Either wire it in (e.g. documents list / signed URLs) or drop it from the
   stack + `package.json`.
-- **Effort:** S · **Priority:** 🟢 low · **Status:** open
+- **Effort:** S · **Priority:** 🟢 low · **Status:** done
 
 ### TD-5 · Dead runtime module: `src/lib/prisma.ts`
 
@@ -97,7 +107,7 @@ by this file; it's the one that gets updated as debt is paid.
   dependency are unnecessary surface.
 - **Fix:** Remove the runtime singleton (keep Prisma for schema/migrations only) or
   document why it stays.
-- **Effort:** S · **Priority:** 🟢 low · **Status:** open
+- **Effort:** S · **Priority:** 🟢 low · **Status:** done
 
 ### TD-6 · i18n / language leaks
 
@@ -109,7 +119,7 @@ by this file; it's the one that gets updated as debt is paid.
   ("Do you have account?").
 - **Fix:** Route the page-citation string through `useT()`; normalize comments to
   English; remove the unused key; fix the copy.
-- **Effort:** S · **Priority:** 🟡 medium · **Status:** open
+- **Effort:** S · **Priority:** 🟡 medium · **Status:** done
 
 ### TD-7 · Decorative search box
 
@@ -117,7 +127,7 @@ by this file; it's the one that gets updated as debt is paid.
 - **Problem:** `SearchInput` has no state, handler, or filtering — it looks functional
   but does nothing.
 - **Fix:** Wire it to filter the documents list, or remove it until there's a use.
-- **Effort:** S · **Priority:** 🟢 low · **Status:** open
+- **Effort:** S · **Priority:** 🟢 low · **Status:** done
 
 ### TD-8 · No tests, no CI
 
@@ -127,7 +137,7 @@ by this file; it's the one that gets updated as debt is paid.
   push.
 - **Fix:** Add a test runner + a few high-value tests (chunker, action error paths)
   and a minimal CI workflow (lint + typecheck + test).
-- **Effort:** L · **Priority:** 🟡 medium · **Status:** open
+- **Effort:** L · **Priority:** 🟡 medium · **Status:** done
 
 ### TD-9 · Stock create-next-app boilerplate never replaced
 
@@ -136,7 +146,7 @@ by this file; it's the one that gets updated as debt is paid.
   contradicting the pnpm-only rule); root `metadata` is still "Create Next App";
   `public/` still holds the template SVGs. Weak for a portfolio piece.
 - **Fix:** Write a real README, set proper `metadata`, remove template assets.
-- **Effort:** S · **Priority:** 🟢 low · **Status:** open
+- **Effort:** S · **Priority:** 🟢 low · **Status:** done
 
 ### TD-10 · No rate limiting / cost controls on `/api/chat`
 
@@ -147,7 +157,7 @@ by this file; it's the one that gets updated as debt is paid.
   guests / the public — see ROADMAP **RM-4** (guest mode) and **RM-3** (plan limits).
 - **Fix:** Add per-user rate limiting and/or a usage counter; share the limit model
   with RM-3's plan gating.
-- **Effort:** M · **Priority:** 🟡 medium · **Status:** open
+- **Effort:** M · **Priority:** 🟡 medium · **Status:** done (code ready — apply `prisma/sql/rateLimitSetup.sql` + migration on live DB)
 
 ### TD-11 · Deletion ordering can orphan storage files
 
@@ -156,7 +166,7 @@ by this file; it's the one that gets updated as debt is paid.
   only `console.error`'d ("orphan file"). Accepted trade-off, but there is no cleanup
   path.
 - **Fix:** Delete storage first (or add a reconciliation/cleanup job for orphans).
-- **Effort:** M · **Priority:** 🟢 low · **Status:** open
+- **Effort:** M · **Priority:** 🟢 low · **Status:** done
 
 ### TD-12 · Signed preview URLs expire silently
 
@@ -164,7 +174,7 @@ by this file; it's the one that gets updated as debt is paid.
 - **Problem:** Issues a 10-minute signed URL; a preview left open longer starts
   failing page loads with no refresh mechanism.
 - **Fix:** Refresh the signed URL on expiry (or on load error) before rendering pages.
-- **Effort:** M · **Priority:** 🟡 medium · **Status:** open
+- **Effort:** M · **Priority:** 🟡 medium · **Status:** done
 
 ### TD-13 · Chunker is purely character-based
 
@@ -174,7 +184,7 @@ by this file; it's the one that gets updated as debt is paid.
   discards layout that could improve retrieval quality.
 - **Fix:** Add sentence/paragraph-aware boundaries. Fine for MVP — quality
   improvement, not a bug.
-- **Effort:** M · **Priority:** 🟢 low · **Status:** open
+- **Effort:** M · **Priority:** 🟢 low · **Status:** done
 
 ### TD-14 · Minor naming / inert-class inconsistencies
 
@@ -187,7 +197,7 @@ by this file; it's the one that gets updated as debt is paid.
   renders no badge at all.
 - **Fix:** Pick one interface convention (`*Props`), align file ↔ component names, fix
   `max-w-[500px]`, add a `pending` badge.
-- **Effort:** S · **Priority:** 🟢 low · **Status:** open
+- **Effort:** S · **Priority:** 🟢 low · **Status:** done
 
 ### TD-15 · Three fonts loaded, only one used
 
@@ -195,4 +205,90 @@ by this file; it's the one that gets updated as debt is paid.
 - **Problem:** Figtree + Geist Sans + Geist Mono are all loaded while `font-sans` is
   the only family visibly used — Geist looks like template residue.
 - **Fix:** Drop the unused font imports.
-- **Effort:** S · **Priority:** 🟢 low · **Status:** open
+- **Effort:** S · **Priority:** 🟢 low · **Status:** done
+
+### TD-16 · Drop cited-chunk text highlighting — jump to page only
+
+- **Area:** `src/features/documents/components/PdfViewer.tsx` (+ `FilePreview.tsx`),
+  `src/features/chat/components/ChatZone.tsx`, `src/features/workspace/components/Container.tsx`,
+  `src/features/chat/types.ts`
+- **Problem:** Clicking a source chip currently scrolls to the cited page **and**
+  paints a translucent box over the matched chunk text on the PDF text layer (RM-1,
+  `HIGHLIGHT_MARK_CLASS`). The char-window chunks rarely line up with the text-layer
+  spans, so the highlight is fragile/noisy and adds real complexity (`snippets`
+  plumbed through `Source` → `onSourceClick` → `handleSourceClick` →
+  `selectedHighlights` → `PdfViewer.highlights`).
+- **Fix:** Remove the highlighting path — navigate to the page only. Delete
+  `HIGHLIGHT_MARK_CLASS`/`MIN_MATCH_LENGTH`, the highlight painting effect and
+  `pendingHighlightScrollRef` in `PdfViewer`, the `highlights` prop chain, and the
+  `snippets` field on `Source` if nothing else uses it. Keep page-scroll behavior.
+- **Effort:** S · **Priority:** 🟡 medium · **Status:** done
+
+### TD-17 · Collapse source chips to one page + a `+N` page picker
+
+- **Area:** `src/features/chat/components/ChatZone.tsx`,
+  `src/features/workspace/components/Container.tsx`,
+  `src/app/api/chat/route.ts` (sources grouping)
+- **Problem:** An assistant answer renders **every** cited (document, page) as its own
+  chip (`sources.map(...)`), so a multi-page match dumps the whole list inline and
+  clutters the message.
+- **Fix:** Show a single primary source chip (first page) and, when the same answer
+  cites more pages, a `+N` affordance (N = count of additional pages carrying the same
+  info). Clicking `+N` opens a small list/popover to pick which page to jump to; the
+  chosen page drives the existing page-navigation callback. Route text through
+  `useT()` (see TD-6 — the current `· с.${page}` is a hardcoded-Cyrillic leak).
+- **Effort:** M · **Priority:** 🟡 medium · **Status:** done
+
+### TD-18 · Plan not updated after a successful payment
+
+- **Area:** `src/app/api/stripe/webhook/route.ts` (`syncSubscription`),
+  `src/features/billing/*`, `prisma/sql/billingSetup.sql`
+- **Problem:** After completing Stripe Checkout the user's `profiles.plan` stays on
+  its old value (still gated as `free`) instead of flipping to `pro`. The webhook maps
+  `checkout.session.completed` / `customer.subscription.*` → `syncSubscription`, which
+  updates the profile by `stripe_customer_id` under the service role — so the plan
+  isn't reflecting.
+- **Likely causes to check:** (a) the webhook isn't reaching the app in dev (no
+  `stripe listen` / wrong `STRIPE_WEBHOOK_SECRET`); (b) `stripe_customer_id` was never
+  written on the profile at checkout time, so the `.eq("stripe_customer_id", …)` update
+  matches zero rows; (c) `planFromSubscriptionStatus` returns a non-`pro` value for the
+  live status; (d) the workspace reads a stale plan (no refresh after redirect back).
+- **Fix:** Verify the webhook is delivered and the customer id is persisted at checkout,
+  confirm the status→plan mapping, and refresh plan state on return from Checkout.
+- **Effort:** M · **Priority:** 🔴 high · **Status:** done (code+SQL ready — verify on live Supabase/Stripe)
+
+### TD-19 · Chat token usage not counted
+
+- **Area:** `src/app/api/chat/route.ts` (`onFinish` → `increment_usage`),
+  `prisma/sql/billingSetup.sql` (`increment_usage` / `get_usage`)
+- **Problem:** After a chat request the usage meter doesn't move — `tokens_used` stays
+  flat although the plan gate reads it (`get_usage`) to enforce the token budget. The
+  route wires `streamText({ onFinish: ({ totalUsage }) => rpc("increment_usage",
+{ p_tokens }) })`, but the increment isn't landing.
+- **Likely causes to check:** (a) `onFinish` runs after the response stream closes in a
+  serverless request — the function may be torn down before the RPC completes (needs
+  `waitUntil`/awaiting); (b) `totalUsage` is `undefined`/zero for this AI SDK version,
+  so `p_tokens` is 0; (c) the deployed `increment_usage` signature/name differs from
+  the call (silent RPC failure — the result isn't checked); (d) RLS: `usage` is
+  select-only for the owner and writes must go through the SECURITY DEFINER function —
+  confirm it's actually SECURITY DEFINER in the live DB.
+- **Fix:** Ensure the metering RPC awaits/completes before the request ends, check its
+  return for errors, and confirm the deployed function matches the call.
+- **Effort:** M · **Priority:** 🔴 high · **Status:** done (code+SQL ready — verify on live Supabase/Stripe)
+
+### TD-20 · `profiles` row is empty after account creation
+
+- **Area:** `prisma/sql/auth_setup.sql` (`handle_new_user` trigger),
+  `src/features/auth/actions.ts` (`signUp` metadata)
+- **Problem:** A `profiles` row is created for each new `auth.users` row (via the
+  `on_auth_user_created` trigger), but after sign-up the row comes out blank — e.g.
+  `full_name` (and/or `email`) null — instead of carrying the entered details.
+- **Likely causes to check:** (a) `signUp` doesn't pass `full_name` under
+  `options.data`, so `raw_user_meta_data ->> 'full_name'` is null; (b) key-name
+  mismatch between what the action writes and what the trigger reads; (c) for flows
+  where `auth.users.email` isn't populated at insert time (confirm-first / anonymous),
+  the copied `email` is null until confirmation. `plan` is set unconditionally, so the
+  row exists — only the copied fields are missing.
+- **Fix:** Align the sign-up metadata keys with the trigger's `->>` lookups; backfill
+  `email` from the auth record on confirm if needed. Verify against a fresh sign-up.
+- **Effort:** M · **Priority:** 🔴 high · **Status:** done (code+SQL ready — verify on live Supabase/Stripe)

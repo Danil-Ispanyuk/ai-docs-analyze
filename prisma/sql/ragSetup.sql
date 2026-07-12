@@ -40,15 +40,29 @@ create policy "Users manage own chunks"
   using ((select auth.uid()) = user_id)
   with check ((select auth.uid()) = user_id);
 
--- Cosine-similarity search, RLS-enforced (security invoker) and explicitly
--- scoped to the current user. Call from the app via supabase.rpc("match_chunks").
-create or replace function public.match_chunks(
+-- Cosine-similarity search over the caller's chunks, RLS-enforced (security invoker)
+-- and additionally scoped to auth.uid(). Returns the source document `name` for
+-- citations and supports a similarity floor + an optional document filter.
+--
+-- Call from the app via supabase.rpc("match_chunks", { query_embedding, match_count,
+-- match_threshold, document_ids }); keep these argument names and the returned columns
+-- in sync with the call site in src/app/api/chat/route.ts (see CLAUDE.md "Data access").
+--
+-- Drop older signatures first so a rebuild REPLACES the function instead of leaving a
+-- stale overload behind (the earlier 2-arg version returned no `name` column).
+drop function if exists public.match_chunks(vector, int);
+drop function if exists public.match_chunks(vector, int, float, uuid[]);
+
+create function public.match_chunks(
   query_embedding vector(1536),
-  match_count int default 5
+  match_count int default 6,
+  match_threshold float default 0.2,
+  document_ids uuid[] default null
 )
 returns table (
   id uuid,
   document_id uuid,
+  name text,
   content text,
   page int,
   similarity float
@@ -59,12 +73,16 @@ as $$
   select
     c.id,
     c.document_id,
+    d.name,
     c.content,
     c.page,
     1 - (c.embedding <=> query_embedding) as similarity
   from public.chunks as c
+  join public.documents as d on d.id = c.document_id
   where c.user_id = (select auth.uid())
     and c.embedding is not null
+    and (document_ids is null or c.document_id = any(document_ids))
+    and (1 - (c.embedding <=> query_embedding)) >= match_threshold
   order by c.embedding <=> query_embedding
   limit match_count;
 $$;

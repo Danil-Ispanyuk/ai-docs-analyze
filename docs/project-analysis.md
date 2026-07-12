@@ -20,21 +20,21 @@ On top of the RAG core sit four supporting concerns added since the MVP: **passw
 
 Supporting infrastructure:
 
-| Concern | Choice |
-|---|---|
-| Framework | Next.js 16 App Router, React 19, TypeScript (strict) |
-| Auth + DB + Files | Supabase (Postgres + pgvector + Auth via `@supabase/ssr` + Storage), RLS on all user data |
+| Concern           | Choice                                                                                                                                |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Framework         | Next.js 16 App Router, React 19, TypeScript (strict)                                                                                  |
+| Auth + DB + Files | Supabase (Postgres + pgvector + Auth via `@supabase/ssr` + Storage), RLS on all user data                                             |
 | Schema/migrations | Prisma 7 — **schema + migrations only**, never runtime data access (see §7). Migrations are hand-authored + `prisma:deploy` (see §12) |
-| LLM plumbing | Vercel AI SDK v7 (`streamText` + `createUIMessageStream` server-side, `useChat` client-side) |
-| Billing | Stripe (test mode) — hosted Checkout + signature-verified webhook, behind a thin `lib/stripe.ts` seam |
-| Notifications | Sonner toasts (global `<Toaster>`, `lib/toast.ts` wrapper) |
-| Styling/UI | Tailwind CSS v4 + shadcn/ui generated onto **Base UI** primitives (`src/elements/`) |
-| i18n | `next-intl`, cookie-based locale (no URL routing), type-safe keys |
-| Forms | `react-hook-form` + `zod` (shared client/server schemas) |
+| LLM plumbing      | Vercel AI SDK v7 (`streamText` + `createUIMessageStream` server-side, `useChat` client-side)                                          |
+| Billing           | Stripe (test mode) — hosted Checkout + signature-verified webhook, behind a thin `lib/stripe.ts` seam                                 |
+| Notifications     | Sonner toasts (global `<Toaster>`, `lib/toast.ts` wrapper)                                                                            |
+| Styling/UI        | Tailwind CSS v4 + shadcn/ui generated onto **Base UI** primitives (`src/elements/`)                                                   |
+| i18n              | `next-intl`, cookie-based locale (no URL routing), type-safe keys                                                                     |
+| Forms             | `react-hook-form` + `zod` (shared client/server schemas)                                                                              |
 
 **Data clients, strict boundary** (the load-bearing rule of this codebase):
 
-- **Supabase client** ([src/lib/supabase/server.ts](../src/lib/supabase/server.ts), [client.ts](../src/lib/supabase/client.ts)) — *all* user-facing reads/writes. Runs under Row Level Security as the signed-in user.
+- **Supabase client** ([src/lib/supabase/server.ts](../src/lib/supabase/server.ts), [client.ts](../src/lib/supabase/client.ts)) — _all_ user-facing reads/writes. Runs under Row Level Security as the signed-in user.
 - **Supabase service-role client** ([src/lib/supabase/admin.ts](../src/lib/supabase/admin.ts)) — **bypasses RLS**; used **only** by the Stripe webhook, which has no user session and looks a profile up by `stripe_customer_id`. Never imported into user-facing paths.
 - **Prisma** ([src/lib/prisma.ts](../src/lib/prisma.ts)) — connects as a privileged role and **bypasses RLS**; used exclusively for schema and migrations. Anything Prisma can't model (the Supabase `auth` schema, RLS policies, triggers, storage policies, the vector index and `match_chunks`/`get_usage`/`increment_usage` functions) lives in hand-run SQL scripts under [prisma/sql/](../prisma/sql/).
 
@@ -43,6 +43,8 @@ Supporting infrastructure:
 ---
 
 ## 2. Folder Structure
+
+The codebase is organized **feature-first**: each business domain owns a self-contained folder under `src/features/` (actions, service, components, and any domain-only lib/types), while everything cross-cutting lives under `src/shared/`. Routes in `src/app/` stay thin and delegate into features.
 
 ```
 ai-document-analyzer/
@@ -54,34 +56,42 @@ ai-document-analyzer/
 │   └── sql/                 # Hand-run SQL (Supabase SQL Editor): auth_setup, ragSetup, storageSetup, billingSetup, guestCleanup
 ├── public/                  # Static assets (default create-next-app SVGs)
 └── src/
-    ├── actions/             # Server Actions ("use server"): auth.ts, documents.ts, billing.ts
     ├── app/                 # Routes — kept deliberately thin (1–5 lines each)
     │   ├── (auth)/          # Route group + AuthLayout: sign-in, sign-up, forgot-password, reset-password, save-account
     │   ├── api/chat/        # POST /api/chat — the RAG query pipeline (streaming)
     │   ├── api/stripe/      # POST /api/stripe/webhook — Stripe subscription sync
     │   ├── auth/            # GET /auth/callback (PKCE code) & /auth/confirm (OTP hash, incl. recovery)
     │   ├── layout.tsx       # Root layout: fonts, locale, NextIntlClientProvider, <Toaster/>
-    │   └── page.tsx         # / → HomeContent (branches: landing for guests, workspace for signed-in)
-    ├── assets/icons/        # HugeIcons re-exported under semantic names (DocumentIcon, SendIcon…)
-    ├── components/          # Feature components, grouped by domain
-    │   ├── auth/            # LogoutButton
-    │   ├── general/         # Header, SearchInput, UpgradeButton, TryItButton
-    │   └── workspace/       # UploadZone, ChatZone, FilePreview, PdfViewer, modals/RemoveDocument
-    ├── constants/           # DOCUMENT_STATUSES
-    ├── containers/          # Page-level composition (data fetching + state orchestration)
-    │   ├── SignIn/ SignUp/ ForgotPassword/ ResetPassword/ SaveAccount/   # Auth forms
-    │   ├── Landing/         # Public landing (LandingContent)
-    │   └── Workspace/       # WorkspaceContent (server, fetches docs + plan + usage) + Container (client)
-    ├── elements/            # shadcn/Base UI primitives: button, input, form, label, dialog, tooltip, sonner
+    │   └── page.tsx         # / → branches: landing for guests, workspace for signed-in
+    ├── features/            # Feature-first domains — each self-contained (actions + service + components)
+    │   ├── auth/            # actions.ts, service.ts (getCurrentUser), validators.ts,
+    │   │                    #   components/ (SignIn/SignUp/ForgotPassword/ResetPassword/SaveAccount forms)
+    │   ├── billing/         # actions.ts (createCheckoutSession), service.ts, stripe.ts,
+    │   │                    #   components/ (UpgradeButton, UsageMeter)
+    │   ├── chat/            # types.ts (Source, ChatMessage), components/ (ChatZone)
+    │   ├── documents/       # actions.ts, service.ts (constants + row type), lib/ (pdf, chunk, embedding),
+    │   │                    #   components/ (UploadZone, FilePreview, PdfViewer, modals/RemoveDocument)
+    │   ├── landing/         # components/ (LandingContent) — public landing
+    │   └── workspace/       # components/ (WorkspaceContent [server: docs + plan + usage], Container [client])
+    ├── shared/              # Cross-cutting, domain-agnostic code
+    │   ├── assets/icons/    # HugeIcons re-exported under semantic names (DocumentIcon, SendIcon…)
+    │   ├── components/      # Header, Logo, SearchInput, TryItButton, LogoutButton
+    │   ├── config/          # i18n/ (config, request, messages/en.json, useT), supabase/ (server/client/admin/middleware), prisma.ts
+    │   ├── constants/       # general.ts (DOCUMENT_STATUSES)
+    │   ├── lib/             # utils.ts (cn), toast.ts (Sonner wrapper)
+    │   └── ui/              # shadcn/Base UI primitives: button, input, form, label, dialog, tooltip, sonner
     ├── generated/prisma/    # Generated Prisma client — never edited by hand
-    ├── i18n/                # config.ts (locales), request.ts (cookie→locale), messages/en.json, useT hook
     ├── layouts/             # Page shells: AuthLayout (centered card), WorkspaceLayout (header + 3-col grid)
-    ├── lib/                 # Domain-agnostic helpers (see §9)
     ├── global.ts            # next-intl module augmentation → type-safe translation keys
-    └── middleware.ts        # Delegates to lib/supabase/middleware (session refresh + route guard)
+    └── middleware.ts        # Delegates to shared/config/supabase/middleware (session refresh + route guard)
 ```
 
-**UI layering, top → bottom:** `app/` (routes, thin) → `containers/` (composition, data) → `components/` (feature UI by domain) → `elements/` (design-system primitives), with `layouts/` as page shells. Each folder exposes a barrel `index.ts`.
+**Two axes of organization:**
+
+- **Feature-first (`src/features/<domain>/`)** — a domain owns its full vertical slice: `actions.ts` (server actions), `service.ts` (server-side reads/helpers), any domain-only `lib/` or `types.ts`, and a `components/` folder. Barrels (`components/index.ts`) keep imports reading `@/features/documents/components`.
+- **Shared (`src/shared/`)** — cross-cutting primitives with no domain knowledge: design-system `ui/` (was `elements/`), reusable `components/`, provider `config/` (supabase, prisma, i18n), `lib/` helpers, `assets/`, `constants/`.
+
+**UI layering, top → bottom:** `app/` (routes, thin) → feature `components/` (composition + feature UI, incl. server `WorkspaceContent` and client `Container`) → `shared/ui/` (design-system primitives), with `layouts/` as page shells. Each folder exposes a barrel `index.ts`.
 
 ---
 
@@ -179,15 +189,15 @@ Server components can't write cookies, so `createClient()`'s `setAll` swallows t
 
 The mutation surface is mostly **Server Actions**, not REST endpoints:
 
-| Kind | Path / function | Purpose |
-|---|---|---|
-| Route Handler | `POST /api/chat` | RAG query pipeline; plan gate + usage metering; streams UI messages; `maxDuration = 30` |
-| Route Handler | `POST /api/stripe/webhook` | Verifies signature (raw body, node runtime); syncs subscription → `profiles.plan` via the service-role client |
-| Route Handler | `GET /auth/callback` | Exchanges the PKCE `code` for a session |
-| Route Handler | `GET /auth/confirm` | Verifies the email OTP `token_hash` (sign-up, recovery, email change); recovery-aware redirects |
-| Server Action | `signIn`, `signUp`, `signOut`, `requestPasswordReset`, `resetPassword`, `signInAnonymously`, `convertGuestAccount` (`actions/auth.ts`) | Auth mutations |
-| Server Action | `createDocument`, `ingestDocument`, `removeDocument`, `getDocumentUrl` (`actions/documents.ts`) | Document lifecycle |
-| Server Action | `createCheckoutSession` (`actions/billing.ts`) | Start Stripe Checkout for Pro |
+| Kind          | Path / function                                                                                                                        | Purpose                                                                                                       |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Route Handler | `POST /api/chat`                                                                                                                       | RAG query pipeline; plan gate + usage metering; streams UI messages; `maxDuration = 30`                       |
+| Route Handler | `POST /api/stripe/webhook`                                                                                                             | Verifies signature (raw body, node runtime); syncs subscription → `profiles.plan` via the service-role client |
+| Route Handler | `GET /auth/callback`                                                                                                                   | Exchanges the PKCE `code` for a session                                                                       |
+| Route Handler | `GET /auth/confirm`                                                                                                                    | Verifies the email OTP `token_hash` (sign-up, recovery, email change); recovery-aware redirects               |
+| Server Action | `signIn`, `signUp`, `signOut`, `requestPasswordReset`, `resetPassword`, `signInAnonymously`, `convertGuestAccount` (`actions/auth.ts`) | Auth mutations                                                                                                |
+| Server Action | `createDocument`, `ingestDocument`, `removeDocument`, `getDocumentUrl` (`actions/documents.ts`)                                        | Document lifecycle                                                                                            |
+| Server Action | `createCheckoutSession` (`actions/billing.ts`)                                                                                         | Start Stripe Checkout for Pro                                                                                 |
 
 Contract conventions: actions return plain result objects — `{ error?: string }` / `{ error?, message? }` / `{ url?, error? }` — never throw across the boundary; the chat route returns raw `Response` objects (`401`, `429`, `500`, or the UI-message stream); the webhook returns `200`/`400`/`500`. Request body of `/api/chat` is `{ messages: ChatMessage[], documentIds?: string[] }`.
 
@@ -218,7 +228,7 @@ Indexes: documents(user_id); chunks(user_id); chunks(document_id); usage(user_id
 - `chunks.user_id` is deliberately **denormalized** so the vector search filters by owner without a join, RLS-enforceable.
 - `usage` — one row per user per calendar month (`period_start = date_trunc('month', now())`); a new month yields a fresh row (the reset).
 - **RLS**: `profiles` — owner select/update (insert via trigger only); `documents`/`chunks` — single `FOR ALL` policy `auth.uid() = user_id`; `usage` — **select-only** for owner (no write policy — writes go through the definer function); `storage.objects` — per-operation policies requiring the first path segment to equal `auth.uid()` (files at `<user_id>/<uuid>.pdf` in the private `documents` bucket).
-- **SQL functions** (`security definer`/`invoker`, in `prisma/sql`): `match_chunks` (cosine search, RLS + `user_id`-scoped — the *deployed* signature takes `match_count`, `match_threshold`, `document_ids` and joins `documents` for `name`; the repo copy has drifted — **TD-2**); `get_usage()` (current-period counters); `increment_usage(p_tokens)` (SECURITY DEFINER upsert, so users can't reset their own usage); `handle_new_user` (profile + plan trigger); `cleanup_anonymous_users()` (`pg_cron` TTL delete of guests + their storage rows).
+- **SQL functions** (`security definer`/`invoker`, in `prisma/sql`): `match_chunks` (cosine search, RLS + `user_id`-scoped — the _deployed_ signature takes `match_count`, `match_threshold`, `document_ids` and joins `documents` for `name`; the repo copy has drifted — **TD-2**); `get_usage()` (current-period counters); `increment_usage(p_tokens)` (SECURITY DEFINER upsert, so users can't reset their own usage); `handle_new_user` (profile + plan trigger); `cleanup_anonymous_users()` (`pg_cron` TTL delete of guests + their storage rows).
 - Prisma cannot model `auth`, RLS, triggers, storage policies, or vector/usage functions, so those live in `prisma/sql/{auth_setup,ragSetup,storageSetup,billingSetup,guestCleanup}.sql`, pasted into the Supabase SQL Editor by hand.
 
 ---
@@ -242,26 +252,26 @@ Note: `@tanstack/react-query` is listed in the stack and installed, but there is
 
 All in `src/lib/` unless noted:
 
-| Module | Exports | Role |
-|---|---|---|
-| `utils.ts` | `cn(...)` | `clsx` + `tailwind-merge`; Prettier also sorts classes inside `cn(...)` |
-| `pdf.ts` | `extractPdfPages(Uint8Array)` | unpdf text extraction → `[{ page, text }]` |
-| `chunk.ts` | `chunkPages`, `IChunk` | Char-window chunker: size 1000, overlap 150, per page |
-| `embedding.ts` | `embedChunks(texts)` | Thin wrapper over `embedMany` + `text-embedding-3-small` — the provider seam |
-| `chat.ts` | `Source`, `ChatMessage` | Shared chat message typing (incl. `data-sources` part with `snippets`) |
-| `documents.ts` | `DOCUMENTS_BUCKET`, `DocumentRow` | Document constants + list row type (file-size limit is now plan-dependent) |
-| `billing.ts` | `Plan`, `PlanLimits`, `PlanUsage`, `PLAN_LIMITS`, `getPlanLimits`, `formatTokens` | Plan-limits config + usage helpers — the billing-numbers seam |
-| `stripe.ts` | `stripe`, `STRIPE_PRICE_ID`, `planFromSubscriptionStatus` | Stripe client + status→plan mapping — the billing-provider seam |
-| `toast.ts` | `toast.success/error` | Thin wrapper over Sonner — the notification seam |
-| `validators.ts` | `signIn/signUp/forgotPassword/resetPassword/convertAccount` schemas + types | Single zod source of truth (RHF + server actions) |
-| `prisma.ts` | `prisma` | Prisma 7 client — never imported at runtime (**TD-5**) |
-| `supabase/server.ts` | `createClient()` | Per-request cookie-bound server client |
-| `supabase/client.ts` | `createClient()` | Browser client (anon key; RLS is the protection) |
-| `supabase/admin.ts` | `createAdminClient()` | Service-role client, **RLS bypass — webhook only** |
-| `supabase/middleware.ts` | `updateSession()` | Session refresh + route guarding |
-| `src/i18n/index.ts` | `useT` | Re-exported `useTranslations`, full keys app-wide |
-| `src/assets/icons/index.ts` | semantic icon names | HugeIcons re-exports |
-| `src/constants/documents.ts` | `DOCUMENT_STATUSES` | Status enum as `const` object |
+| Module                       | Exports                                                                           | Role                                                                         |
+| ---------------------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `utils.ts`                   | `cn(...)`                                                                         | `clsx` + `tailwind-merge`; Prettier also sorts classes inside `cn(...)`      |
+| `pdf.ts`                     | `extractPdfPages(Uint8Array)`                                                     | unpdf text extraction → `[{ page, text }]`                                   |
+| `chunk.ts`                   | `chunkPages`, `IChunk`                                                            | Char-window chunker: size 1000, overlap 150, per page                        |
+| `embedding.ts`               | `embedChunks(texts)`                                                              | Thin wrapper over `embedMany` + `text-embedding-3-small` — the provider seam |
+| `chat.ts`                    | `Source`, `ChatMessage`                                                           | Shared chat message typing (incl. `data-sources` part with `snippets`)       |
+| `documents.ts`               | `DOCUMENTS_BUCKET`, `DocumentRow`                                                 | Document constants + list row type (file-size limit is now plan-dependent)   |
+| `billing.ts`                 | `Plan`, `PlanLimits`, `PlanUsage`, `PLAN_LIMITS`, `getPlanLimits`, `formatTokens` | Plan-limits config + usage helpers — the billing-numbers seam                |
+| `stripe.ts`                  | `stripe`, `STRIPE_PRICE_ID`, `planFromSubscriptionStatus`                         | Stripe client + status→plan mapping — the billing-provider seam              |
+| `toast.ts`                   | `toast.success/error`                                                             | Thin wrapper over Sonner — the notification seam                             |
+| `validators.ts`              | `signIn/signUp/forgotPassword/resetPassword/convertAccount` schemas + types       | Single zod source of truth (RHF + server actions)                            |
+| `prisma.ts`                  | `prisma`                                                                          | Prisma 7 client — never imported at runtime (**TD-5**)                       |
+| `supabase/server.ts`         | `createClient()`                                                                  | Per-request cookie-bound server client                                       |
+| `supabase/client.ts`         | `createClient()`                                                                  | Browser client (anon key; RLS is the protection)                             |
+| `supabase/admin.ts`          | `createAdminClient()`                                                             | Service-role client, **RLS bypass — webhook only**                           |
+| `supabase/middleware.ts`     | `updateSession()`                                                                 | Session refresh + route guarding                                             |
+| `src/i18n/index.ts`          | `useT`                                                                            | Re-exported `useTranslations`, full keys app-wide                            |
+| `src/assets/icons/index.ts`  | semantic icon names                                                               | HugeIcons re-exports                                                         |
+| `src/constants/documents.ts` | `DOCUMENT_STATUSES`                                                               | Status enum as `const` object                                                |
 
 ---
 
@@ -281,7 +291,7 @@ Patterns to follow when extending the app:
 10. **Status enums as `as const` objects** (`DOCUMENT_STATUSES`).
 11. **Pending UX via `useTransition`** with a consistent inline spinner.
 12. **Stale-result guarding in effects** — `FilePreview` tags results with the request's `id`.
-13. **Plan-gate before paid work.** Read `profiles.plan` and enforce limits in the upload action and `/api/chat` *before* any OpenAI/embedding call; meter usage on finish.
+13. **Plan-gate before paid work.** Read `profiles.plan` and enforce limits in the upload action and `/api/chat` _before_ any OpenAI/embedding call; meter usage on finish.
 14. **RLS-bypass only where there is no user.** The service-role client is confined to the Stripe webhook; everything user-facing runs under the session client.
 15. **Global toasts for async outcomes.** Fire `toast.success/error` from `lib/toast.ts`; keep form field/root validation inline.
 
@@ -306,7 +316,7 @@ Code style observed throughout:
 - **Mutations are server actions** returning `{ error? }` result objects.
 - **Styling:** Tailwind utilities only; semantic tokens (`bg-background`, `text-foreground/60`, …); conditional classes via `cn(...)`; rounded-2xl + `shadow-sm` surfaces.
 - **All user-facing text through `useT()`** with full dotted keys and ICU placeholders.
-- **Comments explain *why*** and mark boundaries (RLS/bypass warnings, provider seams).
+- **Comments explain _why_** and mark boundaries (RLS/bypass warnings, provider seams).
 - **Migrations are hand-authored + `pnpm prisma:deploy`.** `prisma migrate dev` **cannot** be used here: it drift-introspects the live DB and fails (P4002) on the hand-run cross-schema FKs into `auth.users`. New migrations are written by hand to match Prisma's SQL and applied with `deploy` (no shadow DB, no drift check). The RLS/trigger/function SQL in `prisma/sql/*.sql` is pasted into the Supabase SQL Editor by hand.
 - **Every shipped feature gets an implementation doc** under `docs/features/` (per CLAUDE.md).
 - **pnpm only**; new dependencies require explicit approval; the env contract lives in `.env.local.example` (Supabase, OpenAI, Stripe, app URL).

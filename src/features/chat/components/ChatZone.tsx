@@ -12,6 +12,7 @@ import { getPlanLimits, formatTokens, type PlanUsage } from "@/features/billing/
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ChatIcon, SendIcon } from "@/shared/assets/icons";
 import { ChatMessage } from "@/features/chat/types";
+import { SourceChips } from "./SourceChips";
 
 export function ChatZone({
 	documentId,
@@ -26,7 +27,7 @@ export function ChatZone({
 	usage: PlanUsage;
 	className?: string;
 	scopeName: string;
-	onSourceClick: (documentId: string, page: number | null, snippets: string[]) => void;
+	onSourceClick: (documentId: string, page: number | null) => void;
 }) {
 	const t = useT();
 	const [input, setInput] = useState("");
@@ -107,19 +108,7 @@ export function ChatZone({
 									{text}
 								</div>
 								{m.role === "assistant" && sources.length > 0 && (
-									<div className="flex flex-wrap gap-1 px-1">
-										{sources.map((s, i) => (
-											<button
-												key={i}
-												type="button"
-												onClick={() => onSourceClick(s.documentId, s.page, s.snippets)}
-												className="rounded-full border border-border bg-background px-2 py-0.5 text-xs text-foreground/60 transition-colors hover:border-primary hover:text-foreground"
-											>
-												{s.name}
-												{s.page ? ` · с.${s.page}` : ""}
-											</button>
-										))}
-									</div>
+									<SourceChips sources={sources} onSelect={onSourceClick} />
 								)}
 							</div>
 						);
