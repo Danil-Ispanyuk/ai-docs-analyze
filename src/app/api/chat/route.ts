@@ -5,9 +5,11 @@ import {
 	createUIMessageStream,
 	createUIMessageStreamResponse,
 } from "ai";
-import { createClient } from "@/lib/supabase/server";
-import { embedChunks } from "@/lib/embedding";
-import type { ChatMessage, Source } from "@/lib/chat";
+import { createClient } from "@/shared/config/supabase/server";
+import { embedChunks } from "@/features/documents/lib/embedding";
+import { getPlanLimits } from "@/features/billing/service";
+import type { ChatMessage, Source } from "@/features/chat/types";
+import { getCurrentUser } from "@/features/auth/service";
 
 export const maxDuration = 30;
 
@@ -21,10 +23,24 @@ type Matched = {
 
 export async function POST(req: Request) {
 	const supabase = await createClient();
-	const {
-		data: { user },
-	} = await supabase.auth.getUser();
+	const user = await getCurrentUser();
 	if (!user) return new Response("Unauthorized", { status: 401 });
+
+	const { data: profile } = await supabase
+		.from("profiles")
+		.select("plan")
+		.eq("id", user.id)
+		.single();
+	const limits = getPlanLimits(profile?.plan);
+
+	const { data: usageRows } = await supabase.rpc("get_usage");
+	const usage = usageRows?.[0] ?? { tokens_used: 0, requests_used: 0 };
+	if (limits.requestCap !== null && usage.requests_used >= limits.requestCap) {
+		return new Response("Request limit reached for your plan.", { status: 429 });
+	}
+	if (limits.tokenBudget !== null && usage.tokens_used >= limits.tokenBudget) {
+		return new Response("Token budget reached for your plan.", { status: 429 });
+	}
 
 	const { messages, documentIds }: { messages: ChatMessage[]; documentIds?: string[] } =
 		await req.json();
@@ -39,7 +55,7 @@ export async function POST(req: Request) {
 	const [queryEmbedding] = await embedChunks([question]);
 
 	const { data, error } = await supabase.rpc("match_chunks", {
-		query_embedding: queryEmbedding, // якщо тип vector лається → JSON.stringify(...)
+		query_embedding: queryEmbedding,
 		match_count: 6,
 		match_threshold: 0.2,
 		document_ids: documentIds?.length ? documentIds : null,
@@ -48,7 +64,6 @@ export async function POST(req: Request) {
 
 	const chunks = (data as Matched[]) ?? [];
 
-	// групуємо джерела по (файл + сторінка), зберігаючи всі тексти чанків сторінки (RM-1: PDF highlight)
 	const sourcesByKey = new Map<string, Source>();
 	for (const chunk of chunks) {
 		const key = `${chunk.document_id}:${chunk.page}`;
@@ -87,6 +102,14 @@ export async function POST(req: Request) {
 				model: openai("gpt-4o-mini"),
 				instructions,
 				messages: await convertToModelMessages(messages),
+				// Meter the chat cost (prompt + completion tokens) against the plan
+				// budget. Embedding tokens aren't counted yet — they're negligible.
+				onFinish: async ({ totalUsage }) => {
+					const tokens =
+						totalUsage?.totalTokens ??
+						(totalUsage?.inputTokens ?? 0) + (totalUsage?.outputTokens ?? 0);
+					await supabase.rpc("increment_usage", { p_tokens: tokens });
+				},
 			});
 			writer.merge(result.toUIMessageStream());
 		},

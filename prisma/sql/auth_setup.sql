@@ -39,12 +39,14 @@ security definer
 set search_path = ''
 as $$
 begin
-  insert into public.profiles (id, email, full_name, avatar_url)
+  insert into public.profiles (id, email, full_name, avatar_url, plan)
   values (
     new.id,
     new.email,
     new.raw_user_meta_data ->> 'full_name',
-    new.raw_user_meta_data ->> 'avatar_url'
+    new.raw_user_meta_data ->> 'avatar_url',
+    -- Anonymous (guest) sign-ins get the strictest plan; everyone else free.
+    case when new.is_anonymous then 'guest' else 'free' end
   );
   return new;
 end;

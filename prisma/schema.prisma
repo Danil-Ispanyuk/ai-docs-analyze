@@ -26,10 +26,36 @@ model Profile {
   email     String?
   fullName  String?  @map("full_name")
   avatarUrl String?  @map("avatar_url")
+  // Billing plan: guest | free | pro. Default free; anon users are set to
+  // guest by the handle_new_user trigger (see prisma/sql/auth_setup.sql).
+  plan      String   @default("free")
+  // Stripe billing (test mode) — written by the webhook (service role), read to
+  // gate features. Null until the user starts a checkout. See lib/stripe.ts.
+  stripeCustomerId     String? @unique @map("stripe_customer_id")
+  stripeSubscriptionId String? @map("stripe_subscription_id")
+  subscriptionStatus   String? @map("subscription_status")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@map("profiles")
+}
+
+// Per-user usage meter for plan limits. One row per user per calendar month
+// (period_start = date_trunc('month', now())); a new month starts a fresh row,
+// which is the reset. Writes go through the increment_usage() SECURITY DEFINER
+// function so users can't reset their own counters — see prisma/sql/billingSetup.sql.
+model Usage {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  periodStart  DateTime @map("period_start") @db.Timestamptz(6)
+  tokensUsed   Int      @default(0) @map("tokens_used")
+  requestsUsed Int      @default(0) @map("requests_used")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([userId, periodStart])
+  @@index([userId])
+  @@map("usage")
 }
 
 model Document {
@@ -38,6 +64,9 @@ model Document {
   name        String
   storagePath String   @map("storage_path")
   mimeType    String   @default("application/pdf") @map("mime_type")
+  // Size in bytes, taken from Storage metadata at create time. Powers the
+  // per-user storage meter and plan storage cap (see src/lib/billing.ts).
+  size        Int      @default(0)
   // pending | processing | ready | error
   status      String   @default("pending")
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)

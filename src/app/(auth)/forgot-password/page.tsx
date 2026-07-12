@@ -1,4 +1,4 @@
-import { ForgotPasswordForm } from "@/containers";
+import { ForgotPasswordForm } from "@/features/auth/components/ForgotPasswordForm";
 
 export default async function ForgotPassword({
 	searchParams,

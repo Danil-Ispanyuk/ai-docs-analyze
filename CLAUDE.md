@@ -19,6 +19,7 @@ I am the developer. I build this project myself. You are an on-demand assistant,
 - **No new dependencies without asking.** Use the stack below. If something genuinely needs a new package, propose it first with a reason.
 - **Don't run destructive or stateful commands on your own** — no `git commit` / `push`, no deleting files, no `npm install` of new packages, no migrations against a real database. Show me the command instead.
 - **Keep changes small and reviewable.** After a change, give a 1–2 sentence summary of what you added and why. Match the existing code style.
+- **Every new feature gets a doc.** When you finish a feature from `docs/ROADMAP.md`, add (or update) its implementation doc under `docs/features/` — one file per feature (`<id>-<slug>.md`), written **after** the work so it describes the shipped code, and add it to the `docs/features/README.md` index. Follow the format in `docs/features/README.md`.
 - **Ask, don't guess.** On ambiguity, ask one clarifying question rather than building the largest interpretation.
 
 ## Commands
@@ -60,7 +61,7 @@ In code: ingestion lives in `src/actions/documents.ts` (`ingestDocument`: `lib/p
 
 - **Supabase client** (`src/lib/supabase/server.ts` / `client.ts`) — all user-facing reads/writes. Runs under RLS as the signed-in user.
 - **Prisma** (`src/lib/prisma.ts`) — schema and migrations only. It connects as a privileged role and **bypasses RLS — never use it for per-user reads/writes.**
-- Prisma can't model the Supabase `auth` schema, RLS policies, triggers, storage policies, or the `vector` index/function. Those live in `prisma/sql/*.sql` (`auth_setup.sql`, `ragSetup.sql`, `storageSetup.sql`) and are pasted into the Supabase SQL Editor by hand. When a migration touches `documents`/`chunks`/auth/storage wiring, check whether a `prisma/sql` script must change too — and keep `match_chunks` args in `route.ts` in sync with its SQL definition.
+- Prisma can't model the Supabase `auth` schema, RLS policies, triggers, storage policies, or the `vector` index/function. Those live in `prisma/sql/*.sql` (`auth_setup.sql`, `ragSetup.sql`, `storageSetup.sql`, `billingSetup.sql`, `guestCleanup.sql`) and are pasted into the Supabase SQL Editor by hand. When a migration touches `documents`/`chunks`/auth/storage wiring, check whether a `prisma/sql` script must change too — and keep `match_chunks` args in `route.ts` in sync with its SQL definition.
 
 ## Structure
 

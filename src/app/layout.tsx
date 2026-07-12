@@ -3,7 +3,8 @@ import { Geist, Geist_Mono, Figtree } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
 import "./globals.css";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
+import { Toaster } from "@/shared/ui/sonner";
 
 const figtree = Figtree({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -43,6 +44,7 @@ export default async function RootLayout({
 		>
 			<body className="flex min-h-full flex-col">
 				<NextIntlClientProvider>{children}</NextIntlClientProvider>
+				<Toaster />
 			</body>
 		</html>
 	);

@@ -1,3 +1,8 @@
+-- pgvector must exist before the chunks.embedding vector(1536) column below.
+-- No-op on the real DB (already enabled); needed so `migrate dev` can replay
+-- this migration in the throwaway shadow database.
+CREATE EXTENSION IF NOT EXISTS vector;
+
 -- CreateTable
 CREATE TABLE "documents" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),

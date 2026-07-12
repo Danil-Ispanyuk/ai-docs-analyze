@@ -35,7 +35,7 @@ code live in [TECH_DEBT.md](./TECH_DEBT.md).
     (highlight token); scroll the first highlighted span into view (center), fall back
     to page top; clear highlight on document switch.
   - Optional: extract `Spinner` (TD-1) while in `PdfViewer`.
-- **Effort:** M · **Status:** planned
+- **Effort:** M · **Status:** done
 
 ### RM-2 · Password reset
 
@@ -63,7 +63,7 @@ code live in [TECH_DEBT.md](./TECH_DEBT.md).
     SMTP (verified sender domain, SPF/DKIM in DNS), then raise the auth email rate
     limits. No npm package — Supabase talks SMTP directly.
   - Success toasts via RM-5 ("reset email sent", "password changed").
-- **Effort:** M · **Status:** planned
+- **Effort:** M · **Status:** done
 
 ### RM-3 · Billing & plan limits (Stripe test mode)
 
@@ -96,7 +96,7 @@ so budgets can be generous; "no limit" is practically bounded by the token budge
     `/api/chat` and increment. Ties into **TD-10** (rate limiting).
   - Make `MAX_FILE_SIZE` plan-dependent (currently a global 25 MB in `lib/documents.ts`).
   - Enforce limits in the upload action **and** `/api/chat`, before doing paid work.
-- **Effort:** L · **Status:** planned · **Decided:** Stripe test mode; gate on file size + token budget
+- **Effort:** L · **Status:** done · **Decided:** Stripe test mode; gate on file size + token budget
 
 ### RM-4 · Presentation / guest (demo) mode
 
@@ -120,7 +120,7 @@ so budgets can be generous; "no limit" is practically bounded by the token budge
   - **Rate limiting on `/api/chat` (TD-10) is a prerequisite** — guests cost API calls.
   - Optional: a pre-seeded demo HR-policy PDF so guests can ask immediately without
     uploading.
-- **Effort:** L · **Status:** planned · **Decided:** anonymous auth + guest plan (own upload)
+- **Effort:** L · **Status:** done · **Decided:** anonymous auth + guest plan (own upload)
 
 ### RM-5 · Toast notifications (Sonner)
 
@@ -144,4 +144,4 @@ so budgets can be generous; "no limit" is practically bounded by the token budge
     to `toast.success` / `toast.error`; keep RHF field/root validation inline.
   - **i18n:** toast strings go through `useT()`; server-action errors are raw Supabase
     English today — mapping them to i18n keys ties into **TD-6**.
-- **Effort:** S–M · **Status:** planned
+- **Effort:** S–M · **Status:** done
