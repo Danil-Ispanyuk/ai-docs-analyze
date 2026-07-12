@@ -65,6 +65,15 @@ export function SignInForm() {
 					)}
 				/>
 
+				<div className="text-right">
+					<Link
+						href="/forgot-password"
+						className="text-sm font-medium text-primary hover:underline"
+					>
+						{t("Auth.forgotPassword")}
+					</Link>
+				</div>
+
 				{form.formState.errors.root && (
 					<p className="text-sm text-destructive" role="alert">
 						{form.formState.errors.root.message}

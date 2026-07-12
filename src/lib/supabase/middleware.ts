@@ -2,7 +2,9 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 // Public routes reachable without a session. Everything else requires auth.
-const PUBLIC_PREFIXES = ["/sign-in", "/sign-up", "/auth"];
+// /reset-password is intentionally not here: it's reached with an active
+// recovery session, so the normal auth guard already lets it through.
+const PUBLIC_PREFIXES = ["/sign-in", "/sign-up", "/forgot-password", "/auth"];
 
 // Refreshes the Supabase session on every request and guards protected routes.
 // Called from the root middleware.ts.

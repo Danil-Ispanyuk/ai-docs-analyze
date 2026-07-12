@@ -5,7 +5,16 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
-import { signInSchema, signUpSchema, type SignInInput, type SignUpInput } from "@/lib/validators";
+import {
+	signInSchema,
+	signUpSchema,
+	forgotPasswordSchema,
+	resetPasswordSchema,
+	type SignInInput,
+	type SignUpInput,
+	type ForgotPasswordInput,
+	type ResetPasswordInput,
+} from "@/lib/validators";
 
 // Result handed back to the react-hook-form submit handler. On success the
 // action either redirects (sign-in) or returns a message (sign-up).
@@ -59,6 +68,48 @@ export async function signUp(values: SignUpInput): Promise<AuthResult> {
 
 	const t = await getTranslations();
 	return { message: t("Auth.emailConfirmation") };
+}
+
+// Sends a password-recovery email. The link points at /auth/confirm, which
+// verifies the OTP and forwards to /reset-password with an active recovery
+// session. Always returns the same generic message — never reveal whether an
+// account exists for the email (no enumeration).
+export async function requestPasswordReset(values: ForgotPasswordInput): Promise<AuthResult> {
+	const parsed = forgotPasswordSchema.safeParse(values);
+	if (!parsed.success) {
+		return { error: "Invalid input" };
+	}
+
+	const origin = (await headers()).get("origin");
+	const supabase = await createClient();
+
+	// Ignore the result on purpose: a failure (incl. unknown email) must look the
+	// same as a success to the user.
+	await supabase.auth.resetPasswordForEmail(parsed.data.email, {
+		redirectTo: `${origin}/auth/confirm?next=/reset-password`,
+	});
+
+	const t = await getTranslations();
+	return { message: t("Auth.resetLinkSent") };
+}
+
+// Sets a new password for the user in the active recovery session, then sends
+// them straight into the app.
+export async function resetPassword(values: ResetPasswordInput): Promise<AuthResult> {
+	const parsed = resetPasswordSchema.safeParse(values);
+	if (!parsed.success) {
+		return { error: "Invalid input" };
+	}
+
+	const supabase = await createClient();
+	const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
+
+	if (error) {
+		return { error: error.message };
+	}
+
+	revalidatePath("/", "layout");
+	redirect("/");
 }
 
 // Signs the user out and returns them to the sign-in page.

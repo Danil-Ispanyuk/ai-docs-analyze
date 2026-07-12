@@ -15,5 +15,15 @@ export const signUpSchema = z.object({
 	password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
+// Password recovery: request a link by email, then set a new password. The new
+// password reuses signUpSchema's rule so both flows enforce the same strength.
+export const forgotPasswordSchema = z.object({
+	email: z.string().trim().email("Enter a valid email"),
+});
+
+export const resetPasswordSchema = signUpSchema.pick({ password: true });
+
 export type SignInInput = z.infer<typeof signInSchema>;
 export type SignUpInput = z.infer<typeof signUpSchema>;
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
