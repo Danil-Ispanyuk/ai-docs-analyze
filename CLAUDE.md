@@ -21,15 +21,31 @@ I am the developer. I build this project myself. You are an on-demand assistant,
 - **Keep changes small and reviewable.** After a change, give a 1–2 sentence summary of what you added and why. Match the existing code style.
 - **Ask, don't guess.** On ambiguity, ask one clarifying question rather than building the largest interpretation.
 
+## Commands
+
+pnpm only — never npm or yarn.
+
+- `pnpm dev` — dev server at http://localhost:3000
+- `pnpm build` / `pnpm start` — production build / serve
+- `pnpm lint` — ESLint
+- `pnpm format` / `pnpm format:check` — Prettier (tabs, printWidth 100, double quotes; Tailwind class sorting incl. inside `cn(...)`)
+- `pnpm prisma:migrate` — create/apply a dev migration (uses `DIRECT_URL`; show me the command instead of running it against a real DB)
+- `pnpm prisma:generate` — regenerate the client into `src/generated/prisma`
+- `pnpm prisma:deploy` — apply migrations in prod
+
+No test runner is set up. Husky pre-commit runs `lint-staged` (Prettier on staged files).
+
 ## Stack (don't swap without asking)
 
-- Next.js (App Router) + TypeScript
-- Tailwind CSS + shadcn/ui using the **Base UI** primitives (`npx shadcn create`, Base UI variant)
-- Vercel AI SDK for model calls and streaming (`useChat` on the client)
-- Supabase: Postgres + `pgvector` (vectors) + Auth + Storage — one platform for DB, files, and login
-- Auth: Supabase Auth via `@supabase/ssr` (App Router session handling) + Postgres Row Level Security
-- Models: `text-embedding-3-small` for embeddings; `gpt-4o-mini` or Claude Haiku for answers
-- PDF text extraction: `pdf-parse` or `unpdf`. Chunking is hand-written (simple splitter with overlap) — do not add LangChain / LlamaIndex.
+- Next.js 16 (App Router) + TypeScript; path alias `@/*` → `src/*`
+- Tailwind CSS v4 + shadcn/ui on **Base UI** primitives, generated into `src/elements/`
+- Vercel AI SDK v7 (`ai`, `@ai-sdk/openai`, `@ai-sdk/react`): `useChat` on the client, `streamText` + `createUIMessageStream` on the server
+- Supabase: Postgres + `pgvector` + Auth (`@supabase/ssr`) + Storage; RLS on all user data
+- Prisma 7: **schema + migrations only** (see Data access below)
+- Models: `text-embedding-3-small` (1536 dims) for embeddings; `gpt-4o-mini` for answers
+- PDF: `unpdf` for server-side text extraction; `react-pdf` for the client preview. Chunking is hand-written (`src/lib/chunk.ts`) — do not add LangChain / LlamaIndex.
+- i18n: `next-intl` with a cookie-based locale (no URL routing)
+- Forms: `react-hook-form` + `zod` (schemas in `src/lib/validators.ts`); TanStack Query on the client; HugeIcons re-exported from `src/assets/icons`
 - No separate backend: use Next.js route handlers / server actions.
 
 ## Architecture — RAG, two pipelines over one vector store
@@ -37,6 +53,23 @@ I am the developer. I build this project myself. You are an on-demand assistant,
 Ingestion (once per document): upload → store file in Supabase Storage → extract text → split into overlapping chunks → embed each chunk → save chunk text + embedding + metadata (file name, page) into `pgvector`.
 
 Query (per question): embed the question → cosine similarity search in `pgvector` for top-k chunks → build a prompt with those chunks as context → stream the LLM answer with source citations. The model never receives whole documents, only the retrieved chunks.
+
+In code: ingestion lives in `src/actions/documents.ts` (`ingestDocument`: `lib/pdf.ts` → `lib/chunk.ts` → `lib/embedding.ts` → insert into `chunks`); the query pipeline is `src/app/api/chat/route.ts` (embed question → `supabase.rpc("match_chunks")` → stream answer, sources sent as a `data-sources` UI-message part).
+
+## Data access — two clients, different rules
+
+- **Supabase client** (`src/lib/supabase/server.ts` / `client.ts`) — all user-facing reads/writes. Runs under RLS as the signed-in user.
+- **Prisma** (`src/lib/prisma.ts`) — schema and migrations only. It connects as a privileged role and **bypasses RLS — never use it for per-user reads/writes.**
+- Prisma can't model the Supabase `auth` schema, RLS policies, triggers, storage policies, or the `vector` index/function. Those live in `prisma/sql/*.sql` (`auth_setup.sql`, `ragSetup.sql`, `storageSetup.sql`) and are pasted into the Supabase SQL Editor by hand. When a migration touches `documents`/`chunks`/auth/storage wiring, check whether a `prisma/sql` script must change too — and keep `match_chunks` args in `route.ts` in sync with its SQL definition.
+
+## Structure
+
+UI layers, top → bottom: `src/app/` (routes, kept thin) → `src/containers/` (page-level composition) → `src/components/` (feature components by domain: `auth`, `workspace`, `general`) → `src/elements/` (shadcn/Base UI primitives) with `src/layouts/` as page shells. Barrel `index.ts` files per folder.
+
+- `src/actions/` — server actions (`"use server"`): auth + document create/ingest/remove/signed-URL
+- `src/lib/` — pdf/chunk/embedding helpers, Supabase + Prisma clients, validators
+- `src/i18n/` — all user-facing strings live in `messages/en.json`, read via `useT()` with full keys (`t("Workspace.previewError")`); keys are type-safe through `src/global.ts`; new locale = code in `config.ts` + `messages/<code>.json`
+- `src/generated/prisma/` — generated client, never edit by hand
 
 ## Security (hard requirement)
 
@@ -50,6 +83,8 @@ Out for now (don't build unless I ask): file formats beyond PDF, conversation me
 
 ## Conventions
 
+- **One component per file.** A file exports exactly one component. If a component file grows a second component — e.g. a parent that renders a smaller child/sub-component defined inline — extract the child into its own file (colocated in the same folder, wired through the barrel `index.ts`) and import it. Keeps files single-purpose and the tree readable. Small non-component helpers (a local type, a pure formatter, a `cn(...)` call) may stay alongside the component.
+- **Readable variable names — never 1–2 characters.** Every identifier must be self-explanatory (`chunk` not `c`, `index` not `i`, `source` not `s`, `part` not `p`, `message` not `m`). This includes loop counters and `map`/`filter`/`forEach` callback params. Applies to all new/edited code; don't refactor unrelated existing short names.
 - TypeScript throughout; prefer server components and route handlers.
-- Secrets in env vars: `OPENAI_API_KEY` / `ANTHROPIC_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`.
-- Keep model/provider calls behind a thin wrapper module so the LLM is easy to swap.
+- Secrets in `.env.local` (see `.env.local.example`): `OPENAI_API_KEY`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (server-only), `DATABASE_URL` (pooled, runtime), `DIRECT_URL` (migrations).
+- Keep model/provider calls behind a thin wrapper module (`src/lib/embedding.ts` is the pattern) so the LLM is easy to swap.
