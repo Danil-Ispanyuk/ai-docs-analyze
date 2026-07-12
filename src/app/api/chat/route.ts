@@ -48,16 +48,23 @@ export async function POST(req: Request) {
 
 	const chunks = (data as Matched[]) ?? [];
 
-	// унікальні джерела (файл + сторінка)
-	const seen = new Set<string>();
-	const sources: Source[] = [];
-	for (const c of chunks) {
-		const key = `${c.document_id}:${c.page}`;
-		if (!seen.has(key)) {
-			seen.add(key);
-			sources.push({ documentId: c.document_id, name: c.name, page: c.page });
+	// групуємо джерела по (файл + сторінка), зберігаючи всі тексти чанків сторінки (RM-1: PDF highlight)
+	const sourcesByKey = new Map<string, Source>();
+	for (const chunk of chunks) {
+		const key = `${chunk.document_id}:${chunk.page}`;
+		const existing = sourcesByKey.get(key);
+		if (existing) {
+			existing.snippets.push(chunk.content);
+		} else {
+			sourcesByKey.set(key, {
+				documentId: chunk.document_id,
+				name: chunk.name,
+				page: chunk.page,
+				snippets: [chunk.content],
+			});
 		}
 	}
+	const sources: Source[] = [...sourcesByKey.values()];
 
 	const context = chunks
 		.map((c, i) => `[#${i + 1} ${c.name}${c.page ? `, p.${c.page}` : ""}]\n${c.content}`)

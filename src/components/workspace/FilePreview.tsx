@@ -27,11 +27,12 @@ interface FilePreviewProps {
 	documentId: string | null;
 	name?: string;
 	page?: number | null;
+	highlights?: string[];
 }
 
 type PreviewState = { id: string; url?: string; error?: string };
 
-export function FilePreview({ documentId, name, page }: FilePreviewProps) {
+export function FilePreview({ documentId, name, page, highlights }: FilePreviewProps) {
 	const t = useT();
 	const [result, setResult] = useState<PreviewState | null>(null);
 
@@ -74,6 +75,7 @@ export function FilePreview({ documentId, name, page }: FilePreviewProps) {
 			key={result.url}
 			url={result.url}
 			page={page}
+			highlights={highlights}
 			label={name ?? t("Workspace.previewTitle")}
 		/>
 	);

@@ -19,7 +19,7 @@ export function ChatZone({
 	documentId: string | null;
 	className?: string;
 	scopeName: string;
-	onSourceClick: (documentId: string, page: number | null) => void;
+	onSourceClick: (documentId: string, page: number | null, snippets: string[]) => void;
 }) {
 	const t = useT();
 	const [input, setInput] = useState("");
@@ -84,7 +84,7 @@ export function ChatZone({
 											<button
 												key={i}
 												type="button"
-												onClick={() => onSourceClick(s.documentId, s.page)}
+												onClick={() => onSourceClick(s.documentId, s.page, s.snippets)}
 												className="rounded-full border border-border bg-background px-2 py-0.5 text-xs text-foreground/60 transition-colors hover:border-primary hover:text-foreground"
 											>
 												{s.name}
