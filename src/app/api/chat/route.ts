@@ -225,6 +225,18 @@ export async function POST(req: Request) {
 			.eq("status", DOCUMENT_STATUSES.READY);
 		targetIds = (folderDocs ?? []).map((doc) => doc.id as string);
 	} else if (documentId) {
+		const { data: document, error: documentError } = await supabase
+			.from("documents")
+			.select("status")
+			.eq("id", documentId)
+			.maybeSingle();
+		if (documentError) return new Response(documentError.message, { status: 500 });
+		if (!document) return new Response("Document not found.", { status: 404 });
+		if (document.status !== DOCUMENT_STATUSES.READY) {
+			return new Response("This document can't be used in chat until it is indexed.", {
+				status: 400,
+			});
+		}
 		targetIds = [documentId];
 	} else {
 		targetIds = null;

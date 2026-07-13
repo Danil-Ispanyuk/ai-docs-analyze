@@ -6,6 +6,7 @@ import { FilePreview } from "@/features/documents/components/FilePreview";
 import { UploadZone } from "@/features/documents/components/UploadZone";
 import { cn } from "@/shared/lib/utils";
 import { useT } from "@/shared/config/i18n";
+import { DOCUMENT_STATUSES } from "@/shared/constants/general";
 import type { DocumentRow } from "@/features/documents/service";
 import type { FolderRow } from "@/features/folders/service";
 import type { PlanUsage } from "@/features/billing/service";
@@ -53,6 +54,8 @@ export function PreviewContainer({
 		documents.find((document) => document.id === effectiveScope.documentId) ?? null;
 	const selectedFolder = folders.find((folder) => folder.id === effectiveScope.folderId) ?? null;
 	const scopeName = selectedDoc?.name ?? selectedFolder?.name ?? t("Workspace.allDocuments");
+	const chatDisabledReason =
+		selectedDoc?.status === DOCUMENT_STATUSES.ERROR ? t("Workspace.previewErroredBody") : null;
 
 	const handleSelectAll = () => {
 		setScope(ALL_SCOPE);
@@ -138,6 +141,7 @@ export function PreviewContainer({
 				scopeName={scopeName}
 				initialMessages={initialMessages}
 				onSourceClick={handleSourceClick}
+				disabledReason={chatDisabledReason}
 				className={cn(tab === "chat" ? "flex" : "hidden", "md:flex")}
 			/>
 		</>

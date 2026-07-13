@@ -28,6 +28,7 @@ export function ChatZone({
 	scopeName,
 	initialMessages,
 	onSourceClick,
+	disabledReason,
 }: {
 	scope: ChatScope;
 	plan: string;
@@ -36,6 +37,7 @@ export function ChatZone({
 	scopeName: string;
 	initialMessages: ChatMessage[];
 	onSourceClick: (documentId: string, page: number | null) => void;
+	disabledReason?: string | null;
 }) {
 	const t = useT();
 	const [input, setInput] = useState("");
@@ -54,6 +56,7 @@ export function ChatZone({
 		},
 	});
 	const isBusy = status === "submitted" || status === "streaming";
+	const isInputDisabled = isBusy || Boolean(disabledReason);
 	const [isClearing, startClear] = useTransition();
 
 	const handleClearChat = () => {
@@ -220,6 +223,7 @@ export function ChatZone({
 			<form
 				onSubmit={(e) => {
 					e.preventDefault();
+					if (disabledReason) return;
 					if (!input.trim()) return;
 					sendMessage(
 						{ text: input },
@@ -236,19 +240,22 @@ export function ChatZone({
 				}}
 				className="border-t border-border p-3"
 			>
+				{disabledReason && (
+					<p className="mb-2 text-xs leading-relaxed text-destructive">{disabledReason}</p>
+				)}
 				<div className="flex items-center gap-2 rounded-2xl border border-border bg-input/30 py-1 ps-3 pe-1 focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50">
 					<input
 						ref={inputRef}
 						value={input}
 						onChange={(e) => setInput(e.target.value)}
 						placeholder={t("Workspace.chatPlaceholder")}
-						disabled={isBusy}
+						disabled={isInputDisabled}
 						className="flex-1 bg-transparent py-1.5 text-sm outline-none placeholder:text-muted-foreground disabled:opacity-50"
 					/>
 					<Button
 						type="submit"
 						size="icon-sm"
-						disabled={isBusy || !input.trim()}
+						disabled={isInputDisabled || !input.trim()}
 						aria-label={t("Workspace.send")}
 					>
 						<HugeiconsIcon icon={SendIcon} className="size-4 rtl:-scale-x-100" />

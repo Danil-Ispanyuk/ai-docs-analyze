@@ -55,9 +55,12 @@ type SupabaseConfig = {
 	match?: ({ document_id: string } & Record<string, unknown>)[];
 	matchError?: { message: string } | null;
 	documents?: string[];
+	documentStatus?: string | null;
+	documentError?: { message: string } | null;
 	fallbackChunks?: unknown[];
 	fallbackError?: { message: string } | null;
 	onMatchChunks?: (args: Record<string, unknown>) => void;
+	onInsert?: (table: string, data: unknown) => void;
 };
 
 function makeSupabase(config: SupabaseConfig) {
@@ -69,9 +72,12 @@ function makeSupabase(config: SupabaseConfig) {
 		match = [],
 		matchError = null,
 		documents = [],
+		documentStatus = "ready",
+		documentError = null,
 		fallbackChunks = [],
 		fallbackError = null,
 		onMatchChunks,
+		onInsert,
 	} = config;
 
 	return {
@@ -105,6 +111,10 @@ function makeSupabase(config: SupabaseConfig) {
 				const query: Record<string, unknown> = {
 					select: () => query,
 					eq: () => query,
+					maybeSingle: async () => ({
+						data: documentStatus ? { status: documentStatus } : null,
+						error: documentError,
+					}),
 					then: (resolve: (value: { data: { id: string }[]; error: null }) => unknown) =>
 						Promise.resolve({ data: documents.map((id) => ({ id })), error: null }).then(resolve),
 				};
@@ -116,7 +126,10 @@ function makeSupabase(config: SupabaseConfig) {
 				order: () => fallbackQuery,
 				limit: () => fallbackQuery,
 				in: () => fallbackQuery,
-				insert: async () => ({ data: null, error: null }),
+				insert: async (data: unknown) => {
+					onInsert?.(table, data);
+					return { data: null, error: null };
+				},
 				then: (
 					resolve: (value: { data: unknown[]; error: { message: string } | null }) => unknown,
 				) => Promise.resolve({ data: fallbackChunks, error: fallbackError }).then(resolve),
@@ -184,6 +197,22 @@ describe("POST /api/chat — guards", () => {
 			chatRequest({ messages: [{ parts: [{ type: "text", text: "hi" }] }], documentId: "doc-1" }),
 		);
 		expect(response.status).toBe(500);
+	});
+
+	it("returns 400 before persisting when a scoped document is not ready", async () => {
+		const inserts: unknown[] = [];
+		state.supabase = makeSupabase({
+			documentStatus: "error",
+			onInsert: (_table, data) => inserts.push(data),
+		});
+
+		const response = await POST(
+			chatRequest({ messages: [{ parts: [{ type: "text", text: "hi" }] }], documentId: "doc-1" }),
+		);
+
+		expect(response.status).toBe(400);
+		expect(await response.text()).toMatch(/indexed/i);
+		expect(inserts).toEqual([]);
 	});
 
 	it("returns 400 when the question is empty", async () => {

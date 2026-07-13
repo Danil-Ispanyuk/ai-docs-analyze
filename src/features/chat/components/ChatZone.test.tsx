@@ -139,4 +139,15 @@ describe("ChatZone", () => {
 		render();
 		expect(screen.getByRole("textbox")).toBeDisabled();
 	});
+
+	it("blocks sending when the selected scope cannot be used in chat", async () => {
+		render({ disabledReason: "This document failed to process." });
+
+		expect(screen.getByText("This document failed to process.")).toBeInTheDocument();
+		expect(screen.getByRole("textbox")).toBeDisabled();
+		expect(document.querySelector('button[type="submit"]')).toBeDisabled();
+
+		await userEvent.click(document.querySelector('button[type="submit"]')!);
+		expect(chat.sendMessage).not.toHaveBeenCalled();
+	});
 });
