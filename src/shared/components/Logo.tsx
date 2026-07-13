@@ -1,18 +1,31 @@
+"use client";
+
 import { useT } from "@/shared/config/i18n";
 import { cn } from "@/shared/lib/utils";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { BrandIcon } from "@/shared/assets/icons";
+import { signOut } from "@/features/auth/actions";
 
 interface LogoProps {
+	isGuest?: boolean;
 	iconOnly?: boolean;
 	className?: string;
 }
 
-export function Logo({ iconOnly = false, className }: LogoProps) {
+export function Logo({ isGuest, iconOnly = false, className }: LogoProps) {
 	const t = useT();
 
+	const handleRedirectToLanding = () => {
+		if (isGuest) {
+			signOut();
+		}
+	};
+
 	return (
-		<span className={cn("flex items-center gap-2", className)}>
+		<span
+			className={cn("flex items-center gap-2", className, isGuest && "cursor-pointer")}
+			onClick={handleRedirectToLanding}
+		>
 			<span className="flex size-8 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-chart-4 text-primary-foreground shadow-sm ring-1 ring-white/15 ring-inset">
 				<HugeiconsIcon icon={BrandIcon} className="size-[1.15rem]" />
 			</span>
