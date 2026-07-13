@@ -33,6 +33,8 @@ export async function createCheckoutSession(): Promise<{ url?: string; error?: s
 		const session = await stripe.checkout.sessions.create({
 			mode: "subscription",
 			customer: customerId,
+			client_reference_id: user.id,
+			metadata: { userId: user.id },
 			line_items: [{ price: STRIPE_PRICE_ID, quantity: 1 }],
 			subscription_data: { metadata: { userId: user.id } },
 			success_url: `${appUrl}/?checkout=success`,
