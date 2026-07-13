@@ -6,6 +6,7 @@ const state = vi.hoisted(() => ({
 	supabase: null as unknown,
 	// Records everything written into the UI-message stream (e.g. the data-sources part).
 	writes: [] as { type: string; data?: unknown }[],
+	embedInputs: [] as string[][],
 	executePromise: null as Promise<void> | null,
 }));
 
@@ -18,7 +19,10 @@ vi.mock("@/shared/config/supabase/server", () => ({
 }));
 
 vi.mock("@/features/documents/lib/embedding", () => ({
-	embedChunks: async () => [[0.1, 0.2, 0.3]],
+	embedChunks: async (texts: string[]) => {
+		state.embedInputs.push(texts);
+		return [[0.1, 0.2, 0.3]];
+	},
 }));
 
 vi.mock("@ai-sdk/openai", () => ({
@@ -53,6 +57,9 @@ type SupabaseConfig = {
 	usage?: { tokens_used: number; requests_used: number };
 	match?: unknown[];
 	matchError?: { message: string } | null;
+	fallbackChunks?: unknown[];
+	fallbackError?: { message: string } | null;
+	onMatchChunks?: (args: Record<string, unknown>) => void;
 };
 
 function makeSupabase(config: SupabaseConfig) {
@@ -63,20 +70,41 @@ function makeSupabase(config: SupabaseConfig) {
 		usage = { tokens_used: 0, requests_used: 0 },
 		match = [],
 		matchError = null,
+		fallbackChunks = [],
+		fallbackError = null,
+		onMatchChunks,
 	} = config;
 
 	return {
-		rpc: (name: string) => {
+		rpc: (name: string, args?: Record<string, unknown>) => {
 			if (name === "check_chat_rate") return { data: rate, error: rateError };
 			if (name === "get_usage") return { data: [usage], error: null };
-			if (name === "match_chunks") return { data: match, error: matchError };
+			if (name === "match_chunks") {
+				onMatchChunks?.(args ?? {});
+				return { data: match, error: matchError };
+			}
 			return { data: null, error: null };
 		},
-		from: () => ({
-			select: () => ({
-				eq: () => ({ single: async () => ({ data: { plan }, error: null }) }),
-			}),
-		}),
+		from: (table: string) => {
+			if (table === "profiles") {
+				return {
+					select: () => ({
+						eq: () => ({ single: async () => ({ data: { plan }, error: null }) }),
+					}),
+				};
+			}
+
+			const fallbackQuery = {
+				select: () => fallbackQuery,
+				order: () => fallbackQuery,
+				limit: () => fallbackQuery,
+				in: () => fallbackQuery,
+				then: (
+					resolve: (value: { data: unknown[]; error: { message: string } | null }) => unknown,
+				) => Promise.resolve({ data: fallbackChunks, error: fallbackError }).then(resolve),
+			};
+			return fallbackQuery;
+		},
 	};
 }
 
@@ -88,6 +116,7 @@ beforeEach(() => {
 	state.user = { id: "user-1" };
 	state.supabase = makeSupabase({});
 	state.writes = [];
+	state.embedInputs = [];
 	state.executePromise = null;
 });
 
@@ -140,11 +169,23 @@ describe("POST /api/chat — guards", () => {
 		);
 		expect(response.status).toBe(500);
 	});
+
+	it("returns 400 when the question is empty", async () => {
+		const response = await POST(chatRequest({ messages: [], documentIds: [] }));
+
+		expect(response.status).toBe(400);
+		expect(await response.text()).toMatch(/question is required/i);
+		expect(state.embedInputs).toEqual([]);
+	});
 });
 
 describe("POST /api/chat — happy path", () => {
 	it("streams a 200 response and dedupes sources by document + page", async () => {
+		let matchArgs: Record<string, unknown> | undefined;
 		state.supabase = makeSupabase({
+			onMatchChunks: (args) => {
+				matchArgs = args;
+			},
 			match: [
 				{ document_id: "doc-1", name: "Policy.pdf", content: "a", page: 1, similarity: 0.9 },
 				// Same doc + page → collapses into the first source.
@@ -162,10 +203,37 @@ describe("POST /api/chat — happy path", () => {
 		await state.executePromise;
 
 		expect(response.status).toBe(200);
+		expect(matchArgs).toMatchObject({ match_count: 12, match_threshold: 0.12 });
 		const sourcesPart = state.writes.find((part) => part.type === "data-sources");
 		expect(sourcesPart?.data).toEqual([
 			{ documentId: "doc-1", name: "Policy.pdf", page: 1 },
 			{ documentId: "doc-2", name: "Handbook.pdf", page: 4 },
 		]);
+	});
+
+	it("falls back to leading document chunks when vector search finds no matches", async () => {
+		state.supabase = makeSupabase({
+			match: [],
+			fallbackChunks: [
+				{
+					document_id: "doc-1",
+					content: "Executive summary",
+					page: 1,
+					documents: { name: "Overview.pdf" },
+				},
+			],
+		});
+
+		const response = await POST(
+			chatRequest({
+				messages: [{ parts: [{ type: "text", text: "What is this document about?" }] }],
+				documentIds: ["doc-1"],
+			}),
+		);
+		await state.executePromise;
+
+		expect(response.status).toBe(200);
+		const sourcesPart = state.writes.find((part) => part.type === "data-sources");
+		expect(sourcesPart?.data).toEqual([{ documentId: "doc-1", name: "Overview.pdf", page: 1 }]);
 	});
 });

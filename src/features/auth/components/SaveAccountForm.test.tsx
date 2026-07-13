@@ -13,6 +13,7 @@ import { SaveAccountForm } from "./SaveAccountForm";
 
 const submit = () => document.querySelector('button[type="submit"]') as HTMLButtonElement;
 const fill = async () => {
+	await userEvent.type(document.querySelector('input[type="text"]')!, "Ada Lovelace");
 	await userEvent.type(document.querySelector('input[type="email"]')!, "guest@example.com");
 	await userEvent.type(document.querySelector('input[type="password"]')!, "supersecret");
 };
@@ -23,27 +24,18 @@ describe("SaveAccountForm", () => {
 		actions.convertGuestAccount.mockResolvedValue(undefined);
 	});
 
-	it("calls convertGuestAccount with email + password", async () => {
+	it("calls convertGuestAccount with full name, email + password", async () => {
 		renderWithIntl(<SaveAccountForm />);
 		await fill();
 		await userEvent.click(submit());
 
 		await waitFor(() =>
 			expect(actions.convertGuestAccount).toHaveBeenCalledWith({
+				fullName: "Ada Lovelace",
 				email: "guest@example.com",
 				password: "supersecret",
 			}),
 		);
-	});
-
-	it("swaps the form for a confirmation message on success", async () => {
-		actions.convertGuestAccount.mockResolvedValue({ message: "Account saved — confirm email." });
-		renderWithIntl(<SaveAccountForm />);
-		await fill();
-		await userEvent.click(submit());
-
-		expect(await screen.findByText("Account saved — confirm email.")).toBeInTheDocument();
-		expect(document.querySelector('button[type="submit"]')).toBeNull();
 	});
 
 	it("shows a root error when the action fails", async () => {

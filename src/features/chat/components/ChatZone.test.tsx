@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderWithIntl } from "@/shared/test/intl";
@@ -37,6 +37,11 @@ beforeEach(() => {
 	chat.messages = [];
 	chat.sendMessage.mockReset();
 	chat.status = "ready";
+	vi.spyOn(Element.prototype, "scrollIntoView").mockImplementation(() => {});
+});
+
+afterEach(() => {
+	vi.restoreAllMocks();
 });
 
 describe("ChatZone", () => {
@@ -96,6 +101,26 @@ describe("ChatZone", () => {
 		expect(screen.getByText("It is on page 2.")).toBeInTheDocument();
 		// SourceChips renders the citation as a button.
 		expect(screen.getByRole("button", { name: /Policy\.pdf/ })).toBeInTheDocument();
+	});
+
+	it("keeps the message list anchored to the bottom", () => {
+		const scrollIntoView = vi.spyOn(Element.prototype, "scrollIntoView");
+		chat.messages = [
+			{
+				id: "u1",
+				role: "user",
+				parts: [{ type: "text", text: "Question" }],
+			},
+			{
+				id: "a1",
+				role: "assistant",
+				parts: [{ type: "text", text: "Answer" }],
+			},
+		] as unknown as ChatMessage[];
+
+		render();
+
+		expect(scrollIntoView).toHaveBeenCalledWith({ block: "end" });
 	});
 
 	it("labels the meter 'Questions' on a request-capped plan", () => {

@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { convertGuestAccount } from "@/features/auth/actions";
@@ -11,16 +10,15 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/ui/form";
 
-// Guest → account conversion form. On success the guest's data is kept and a
-// confirmation email is sent; we show that message in place of the form.
+// Guest → account conversion form. On success the guest's data is kept and the
+// action signs the user straight into the app (email confirmation is disabled).
 export function SaveAccountForm() {
 	const t = useT();
 	const [isPending, startTransition] = useTransition();
-	const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
 	const form = useForm<ConvertAccountInput>({
 		resolver: standardSchemaResolver(convertAccountSchema),
-		defaultValues: { email: "", password: "" },
+		defaultValues: { fullName: "", email: "", password: "" },
 	});
 
 	const onSubmit = (values: ConvertAccountInput) => {
@@ -28,27 +26,33 @@ export function SaveAccountForm() {
 			const result = await convertGuestAccount(values);
 			if (result?.error) {
 				form.setError("root", { message: result.error });
-			} else if (result?.message) {
-				setSuccessMessage(result.message);
 			}
 		});
 	};
-
-	if (successMessage) {
-		return (
-			<div className="space-y-4 text-center">
-				<p className="text-sm text-foreground/80">{successMessage}</p>
-				<Link href="/" className="text-sm font-medium text-primary hover:underline">
-					{t("Auth.backToSignIn")}
-				</Link>
-			</div>
-		);
-	}
 
 	return (
 		<Form {...form}>
 			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
 				<p className="text-sm text-foreground/60">{t("Auth.saveAccountDescription")}</p>
+
+				<FormField
+					control={form.control}
+					name="fullName"
+					render={({ field }) => (
+						<FormItem>
+							<FormLabel>{t("Auth.fullNameLabel")}</FormLabel>
+							<FormControl>
+								<Input
+									type="text"
+									autoComplete="name"
+									placeholder={t("Auth.fullNamePlaceholder")}
+									{...field}
+								/>
+							</FormControl>
+							<FormMessage />
+						</FormItem>
+					)}
+				/>
 
 				<FormField
 					control={form.control}

@@ -45,15 +45,15 @@ export async function signUp(values: SignUpInput): Promise<AuthResult> {
 		return { error: "Invalid input" };
 	}
 
-	const origin = (await headers()).get("origin");
 	const supabase = await createClient();
 
+	// Email confirmation is disabled in Supabase, so signUp returns a live
+	// session immediately — sign the user straight into the app.
 	const { error } = await supabase.auth.signUp({
 		email: parsed.data.email,
 		password: parsed.data.password,
 		options: {
 			data: { full_name: parsed.data.fullName },
-			emailRedirectTo: `${origin}/auth/callback`,
 		},
 	});
 
@@ -61,8 +61,8 @@ export async function signUp(values: SignUpInput): Promise<AuthResult> {
 		return { error: error.message };
 	}
 
-	const t = await getTranslations();
-	return { message: t("Auth.emailConfirmation") };
+	revalidatePath("/", "layout");
+	redirect("/");
 }
 
 export async function requestPasswordReset(values: ForgotPasswordInput): Promise<AuthResult> {
@@ -130,16 +130,21 @@ export async function convertGuestAccount(values: ConvertAccountInput): Promise<
 	const { error } = await supabase.auth.updateUser({
 		email: parsed.data.email,
 		password: parsed.data.password,
+		data: { full_name: parsed.data.fullName },
 	});
 	if (error) {
 		return { error: error.message };
 	}
 
-	await supabase.from("profiles").update({ plan: PLAN_TYPES.FREE }).eq("id", user.id);
+	// The profile row was created as a guest with no full_name; the new-user
+	// trigger only fires on insert, so write full_name and the plan here.
+	await supabase
+		.from("profiles")
+		.update({ full_name: parsed.data.fullName, plan: PLAN_TYPES.FREE })
+		.eq("id", user.id);
 
-	const t = await getTranslations();
 	revalidatePath("/", "layout");
-	return { message: t("Auth.emailConfirmation") };
+	redirect("/");
 }
 
 export async function signOut() {

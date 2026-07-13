@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { signUp } from "@/features/auth/actions";
@@ -14,7 +14,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 export function SignUpForm() {
 	const t = useT();
 	const [isPending, startTransition] = useTransition();
-	const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
 	const form = useForm<SignUpInput>({
 		resolver: standardSchemaResolver(signUpSchema),
@@ -26,22 +25,9 @@ export function SignUpForm() {
 			const result = await signUp(values);
 			if (result?.error) {
 				form.setError("root", { message: result.error });
-			} else if (result?.message) {
-				setSuccessMessage(result.message);
 			}
 		});
 	};
-
-	if (successMessage) {
-		return (
-			<div className="space-y-4 text-center">
-				<p className="text-sm text-foreground/80">{successMessage}</p>
-				<Link href="/sign-in" className="text-sm font-medium text-primary hover:underline">
-					{t("Auth.signIn")}
-				</Link>
-			</div>
-		);
-	}
 
 	return (
 		<Form {...form}>

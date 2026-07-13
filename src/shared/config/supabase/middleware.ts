@@ -4,7 +4,16 @@ import { NextResponse, type NextRequest } from "next/server";
 // Public routes reachable without a session. Everything else requires auth.
 // /reset-password is intentionally not here: it's reached with an active
 // recovery session, so the normal auth guard already lets it through.
-const PUBLIC_PREFIXES = ["/sign-in", "/sign-up", "/forgot-password", "/auth"];
+// /api/stripe/webhook has no session (it's a server-to-server call from Stripe,
+// authenticated by its signature); without this the guard 307s it to /sign-in
+// and Stripe — which doesn't follow redirects — never reaches the handler.
+const PUBLIC_PREFIXES = [
+	"/sign-in",
+	"/sign-up",
+	"/forgot-password",
+	"/auth",
+	"/api/stripe/webhook",
+];
 
 // Refreshes the Supabase session on every request and guards protected routes.
 // Called from the root middleware.ts.
@@ -39,7 +48,8 @@ export async function updateSession(request: NextRequest) {
 	const { pathname } = request.nextUrl;
 	// "/" is the public landing page for logged-out visitors (guest demo, RM-4).
 	// Matched exactly — startsWith("/") would make every route public.
-	const isPublic = pathname === "/" || PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+	const isPublic =
+		pathname === "/" || PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 	const isAuthPage = pathname.startsWith("/sign-in") || pathname.startsWith("/sign-up");
 
 	// Unauthenticated users may only reach public routes.

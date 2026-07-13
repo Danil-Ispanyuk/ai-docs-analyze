@@ -47,17 +47,6 @@ describe("SignUpForm", () => {
 		);
 	});
 
-	it("replaces the form with the confirmation message on success", async () => {
-		actions.signUp.mockResolvedValue({ message: "Check your inbox to confirm." });
-		renderWithIntl(<SignUpForm />);
-		await fill();
-		await userEvent.click(submit());
-
-		expect(await screen.findByText("Check your inbox to confirm.")).toBeInTheDocument();
-		// The form (and its submit button) is gone once confirmation shows.
-		expect(document.querySelector('button[type="submit"]')).toBeNull();
-	});
-
 	it("shows a root error when the action fails", async () => {
 		actions.signUp.mockResolvedValue({ error: "Email already registered" });
 		renderWithIntl(<SignUpForm />);

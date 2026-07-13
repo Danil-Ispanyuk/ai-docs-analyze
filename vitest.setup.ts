@@ -8,8 +8,11 @@ import { cleanup } from "@testing-library/react";
 // Polyfills for Base UI primitives (dialog/tooltip) that jsdom lacks. Only patched
 // when a DOM exists, so node-environment tests are untouched.
 if (typeof window !== "undefined") {
-	if (!window.matchMedia) {
-		window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+	const testWindow = window as Window &
+		typeof globalThis & { ResizeObserver?: typeof ResizeObserver };
+
+	if (!testWindow.matchMedia) {
+		testWindow.matchMedia = vi.fn().mockImplementation((query: string) => ({
 			matches: false,
 			media: query,
 			onchange: null,
@@ -20,8 +23,8 @@ if (typeof window !== "undefined") {
 			dispatchEvent: vi.fn(),
 		}));
 	}
-	if (!("ResizeObserver" in window)) {
-		window.ResizeObserver = class {
+	if (!testWindow.ResizeObserver) {
+		testWindow.ResizeObserver = class {
 			observe() {}
 			unobserve() {}
 			disconnect() {}

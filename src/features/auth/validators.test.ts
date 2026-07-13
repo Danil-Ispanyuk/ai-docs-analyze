@@ -64,12 +64,11 @@ describe("resetPasswordSchema", () => {
 });
 
 describe("convertAccountSchema", () => {
-	it("requires email + 8+ char password but no name", () => {
-		expect(
-			convertAccountSchema.safeParse({ email: "guest@example.com", password: "12345678" }).success,
-		).toBe(true);
-		expect(
-			convertAccountSchema.safeParse({ email: "guest@example.com", password: "short" }).success,
-		).toBe(false);
+	const valid = { fullName: "Ada Lovelace", email: "guest@example.com", password: "12345678" };
+
+	it("requires a full name, email and 8+ char password", () => {
+		expect(convertAccountSchema.safeParse(valid).success).toBe(true);
+		expect(convertAccountSchema.safeParse({ ...valid, password: "short" }).success).toBe(false);
+		expect(convertAccountSchema.safeParse({ ...valid, fullName: "   " }).success).toBe(false);
 	});
 });

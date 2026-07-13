@@ -17,7 +17,11 @@ export const forgotPasswordSchema = z.object({
 
 export const resetPasswordSchema = signUpSchema.pick({ password: true });
 
-export const convertAccountSchema = signUpSchema.pick({ email: true, password: true });
+export const convertAccountSchema = signUpSchema.pick({
+	fullName: true,
+	email: true,
+	password: true,
+});
 
 export type SignInInput = z.infer<typeof signInSchema>;
 export type SignUpInput = z.infer<typeof signUpSchema>;

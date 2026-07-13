@@ -19,6 +19,8 @@ export const maxDuration = 30;
 // This sits on top of the cumulative plan caps below (get_usage / plan budget).
 const RATE_LIMIT_MAX = 10;
 const RATE_LIMIT_WINDOW_SECONDS = 60;
+const MATCH_COUNT = 12;
+const MATCH_THRESHOLD = 0.12;
 
 type Matched = {
 	document_id: string;
@@ -27,6 +29,45 @@ type Matched = {
 	page: number | null;
 	similarity: number;
 };
+
+type FallbackChunk = {
+	document_id: string;
+	content: string;
+	page: number | null;
+	documents: { name: string } | { name: string }[] | null;
+};
+
+function getDocumentName(documents: FallbackChunk["documents"]) {
+	if (Array.isArray(documents)) return documents[0]?.name ?? "Document";
+	return documents?.name ?? "Document";
+}
+
+async function getFallbackChunks(
+	supabase: Awaited<ReturnType<typeof createClient>>,
+	documentIds: string[] | undefined,
+): Promise<Matched[]> {
+	let query = supabase
+		.from("chunks")
+		.select("document_id, content, page, documents(name)")
+		.order("document_id", { ascending: true })
+		.order("chunk_index", { ascending: true })
+		.limit(MATCH_COUNT);
+
+	if (documentIds?.length) {
+		query = query.in("document_id", documentIds);
+	}
+
+	const { data, error } = await query;
+	if (error) throw new Error(error.message);
+
+	return ((data as FallbackChunk[] | null) ?? []).map((chunk) => ({
+		document_id: chunk.document_id,
+		name: getDocumentName(chunk.documents),
+		content: chunk.content,
+		page: chunk.page,
+		similarity: 0,
+	}));
+}
 
 export async function POST(req: Request) {
 	const supabase = await createClient();
@@ -65,18 +106,28 @@ export async function POST(req: Request) {
 			?.map((p) => (p.type === "text" ? p.text : ""))
 			.join("")
 			.trim() ?? "";
+	if (!question) return new Response("Question is required.", { status: 400 });
 
 	const [queryEmbedding] = await embedChunks([question]);
 
 	const { data, error } = await supabase.rpc("match_chunks", {
 		query_embedding: queryEmbedding,
-		match_count: 6,
-		match_threshold: 0.2,
+		match_count: MATCH_COUNT,
+		match_threshold: MATCH_THRESHOLD,
 		document_ids: documentIds?.length ? documentIds : null,
 	});
 	if (error) return new Response(error.message, { status: 500 });
 
-	const chunks = (data as Matched[]) ?? [];
+	let chunks = (data as Matched[]) ?? [];
+	if (!chunks.length) {
+		try {
+			chunks = await getFallbackChunks(supabase, documentIds);
+		} catch (error) {
+			return new Response(error instanceof Error ? error.message : "Fallback search failed", {
+				status: 500,
+			});
+		}
+	}
 
 	const sourcesByKey = new Map<string, Source>();
 	for (const chunk of chunks) {
@@ -97,7 +148,10 @@ export async function POST(req: Request) {
 
 	const instructions = [
 		"You answer questions using ONLY the context below.",
-		"If the answer is not in the context, say you don't know — never invent facts.",
+		"Answer in the same language as the user's question.",
+		"Synthesize across all relevant context chunks; do not require the answer to appear as one exact phrase.",
+		"For resumes/CVs, questions about employers, roles, education, skills, or timelines should be answered from the listed experience and profile details when present.",
+		"If the answer is not supported by the context, say you don't know — never invent facts.",
 		"",
 		"Context:",
 		context || "(no relevant context found)",

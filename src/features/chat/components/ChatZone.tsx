@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useT } from "@/shared/config/i18n";
@@ -31,6 +31,8 @@ export function ChatZone({
 }) {
 	const t = useT();
 	const [input, setInput] = useState("");
+	const inputRef = useRef<HTMLInputElement>(null);
+	const messagesEndRef = useRef<HTMLDivElement>(null);
 	const { messages, sendMessage, status } = useChat<ChatMessage>({
 		transport: new DefaultChatTransport({ api: "/api/chat" }),
 		onError: () => toast.error(t("Workspace.chatError")),
@@ -60,6 +62,10 @@ export function ChatZone({
 			? last.parts.map((part) => (part.type === "text" ? part.text : "")).join("")
 			: "";
 	const showTyping = isBusy && (last?.role !== "assistant" || lastAssistantText.length === 0);
+
+	useEffect(() => {
+		messagesEndRef.current?.scrollIntoView({ block: "end" });
+	}, [messages, status, lastAssistantText, showTyping]);
 
 	return (
 		<section
@@ -122,6 +128,7 @@ export function ChatZone({
 						<span className="size-1.5 animate-bounce rounded-full bg-current" />
 					</div>
 				)}
+				<div ref={messagesEndRef} aria-hidden />
 			</div>
 
 			<form
@@ -133,11 +140,13 @@ export function ChatZone({
 						{ body: { documentIds: documentId ? [documentId] : undefined } },
 					);
 					setInput("");
+					inputRef.current?.focus();
 				}}
 				className="border-t border-border p-3"
 			>
 				<div className="flex items-center gap-2 rounded-2xl border border-border bg-input/30 py-1 pr-1 pl-3 focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50">
 					<input
+						ref={inputRef}
 						value={input}
 						onChange={(e) => setInput(e.target.value)}
 						placeholder={t("Workspace.chatPlaceholder")}
