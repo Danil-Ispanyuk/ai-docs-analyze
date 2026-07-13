@@ -52,8 +52,9 @@ type SupabaseConfig = {
 	rateError?: { message: string } | null;
 	plan?: string | null;
 	usage?: { tokens_used: number; requests_used: number };
-	match?: unknown[];
+	match?: ({ document_id: string } & Record<string, unknown>)[];
 	matchError?: { message: string } | null;
+	documents?: string[];
 	fallbackChunks?: unknown[];
 	fallbackError?: { message: string } | null;
 	onMatchChunks?: (args: Record<string, unknown>) => void;
@@ -67,6 +68,7 @@ function makeSupabase(config: SupabaseConfig) {
 		usage = { tokens_used: 0, requests_used: 0 },
 		match = [],
 		matchError = null,
+		documents = [],
 		fallbackChunks = [],
 		fallbackError = null,
 		onMatchChunks,
@@ -78,7 +80,13 @@ function makeSupabase(config: SupabaseConfig) {
 			if (name === "get_usage") return { data: [usage], error: null };
 			if (name === "match_chunks") {
 				onMatchChunks?.(args ?? {});
-				return { data: match, error: matchError };
+				if (matchError) return { data: null, error: matchError };
+				const ids = args?.document_ids as string[] | null | undefined;
+				const rows = Array.isArray(ids)
+					? match.filter((row) => ids.includes(row.document_id))
+					: match;
+				const count = (args?.match_count as number) ?? rows.length;
+				return { data: rows.slice(0, count), error: null };
 			}
 			return { data: null, error: null };
 		},
@@ -87,6 +95,14 @@ function makeSupabase(config: SupabaseConfig) {
 				return {
 					select: () => ({
 						eq: () => ({ single: async () => ({ data: { plan }, error: null }) }),
+					}),
+				};
+			}
+
+			if (table === "documents") {
+				return {
+					select: () => ({
+						eq: async () => ({ data: documents.map((id) => ({ id })), error: null }),
 					}),
 				};
 			}
@@ -203,6 +219,37 @@ describe("POST /api/chat — happy path", () => {
 		expect(sourcesPart?.data).toEqual([
 			{ documentId: "doc-1", name: "Policy.pdf", page: 1 },
 			{ documentId: "doc-2", name: "Handbook.pdf", page: 4 },
+		]);
+	});
+
+	it("balances retrieval across documents in the all-documents scope", async () => {
+		const calls: (string[] | null)[] = [];
+		state.supabase = makeSupabase({
+			documents: ["doc-1", "doc-2"],
+			onMatchChunks: (args) => {
+				calls.push((args.document_ids as string[]) ?? null);
+			},
+			match: [
+				{ document_id: "doc-1", name: "Policy.pdf", content: "a", page: 1, similarity: 0.6 },
+				{ document_id: "doc-2", name: "Handbook.pdf", content: "c", page: 4, similarity: 0.9 },
+			],
+		});
+
+		const response = await POST(
+			chatRequest({
+				messages: [{ parts: [{ type: "text", text: "What are these about?" }] }],
+				documentIds: [],
+			}),
+		);
+		await state.executePromise;
+
+		expect(response.status).toBe(200);
+		// One scoped match_chunks call per document, so neither can crowd the other out.
+		expect(calls).toEqual([["doc-1"], ["doc-2"]]);
+		const sourcesPart = state.writes.find((part) => part.type === "data-sources");
+		expect(sourcesPart?.data).toEqual([
+			{ documentId: "doc-2", name: "Handbook.pdf", page: 4 },
+			{ documentId: "doc-1", name: "Policy.pdf", page: 1 },
 		]);
 	});
 

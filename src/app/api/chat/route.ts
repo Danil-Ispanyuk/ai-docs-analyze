@@ -12,6 +12,7 @@ import { embedChunks } from "@/features/documents/lib/embedding";
 import { getPlanLimits } from "@/features/billing/service";
 import type { ChatMessage, Source } from "@/features/chat/types";
 import { getCurrentUser } from "@/features/auth/service";
+import { DOCUMENT_STATUSES } from "@/shared/constants/general";
 
 export const maxDuration = 30;
 
@@ -65,6 +66,52 @@ async function getFallbackChunks(
 		page: chunk.page,
 		similarity: 0,
 	}));
+}
+
+// Balanced retrieval: when asking over "all documents", give each document its own
+// quota so one document's chunks can't crowd the others out of the global top-k. The
+// similarity threshold still drops documents irrelevant to a specific question, so
+// this only broadens answers that genuinely span multiple documents.
+async function retrieveChunks(
+	supabase: Awaited<ReturnType<typeof createClient>>,
+	queryEmbedding: number[],
+	documentIds: string[] | undefined,
+): Promise<Matched[]> {
+	if (!documentIds?.length) {
+		const { data: docs } = await supabase
+			.from("documents")
+			.select("id")
+			.eq("status", DOCUMENT_STATUSES.READY);
+		const readyIds = (docs ?? []).map((doc) => doc.id as string);
+
+		if (readyIds.length > 1) {
+			const perDocument = Math.max(2, Math.floor(MATCH_COUNT / readyIds.length));
+			const results = await Promise.all(
+				readyIds.map((documentId) =>
+					supabase.rpc("match_chunks", {
+						query_embedding: queryEmbedding,
+						match_count: perDocument,
+						match_threshold: MATCH_THRESHOLD,
+						document_ids: [documentId],
+					}),
+				),
+			);
+			const failed = results.find((result) => result.error);
+			if (failed?.error) throw new Error(failed.error.message);
+			return results
+				.flatMap((result) => (result.data as Matched[] | null) ?? [])
+				.sort((first, second) => second.similarity - first.similarity);
+		}
+	}
+
+	const { data, error } = await supabase.rpc("match_chunks", {
+		query_embedding: queryEmbedding,
+		match_count: MATCH_COUNT,
+		match_threshold: MATCH_THRESHOLD,
+		document_ids: documentIds?.length ? documentIds : null,
+	});
+	if (error) throw new Error(error.message);
+	return (data as Matched[]) ?? [];
 }
 
 const CONDENSE_SYSTEM = [
@@ -163,15 +210,15 @@ export async function POST(req: Request) {
 
 	const [queryEmbedding] = await embedChunks([searchQuery]);
 
-	const { data, error } = await supabase.rpc("match_chunks", {
-		query_embedding: queryEmbedding,
-		match_count: MATCH_COUNT,
-		match_threshold: MATCH_THRESHOLD,
-		document_ids: documentIds?.length ? documentIds : null,
-	});
-	if (error) return new Response(error.message, { status: 500 });
+	let chunks: Matched[];
+	try {
+		chunks = await retrieveChunks(supabase, queryEmbedding, documentIds);
+	} catch (searchError) {
+		return new Response(searchError instanceof Error ? searchError.message : "Search failed", {
+			status: 500,
+		});
+	}
 
-	let chunks = (data as Matched[]) ?? [];
 	if (!chunks.length) {
 		try {
 			chunks = await getFallbackChunks(supabase, documentIds);
