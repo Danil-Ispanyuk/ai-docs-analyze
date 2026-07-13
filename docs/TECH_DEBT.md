@@ -24,28 +24,37 @@ are in the repo, but they must be applied/confirmed against the live Supabase/St
 setup (run the migration, paste the `prisma/sql` scripts, `stripe listen`, a fresh
 sign-up) before they're truly paid.
 
-| ID    | Title                                                         | Area                                    | Prio | Effort | Status |
-| ----- | ------------------------------------------------------------- | --------------------------------------- | ---- | ------ | ------ |
-| TD-18 | Plan not updated after successful payment                     | Stripe webhook / checkout               | 🔴   | M      | verify |
-| TD-19 | Chat token usage not counted (metering doesn't land)          | `api/chat/route.ts` ↔ `increment_usage` | 🔴   | M      | verify |
-| TD-20 | `profiles` row empty after account creation                   | `auth_setup.sql` trigger                | 🔴   | M      | verify |
-| TD-2  | `match_chunks` drift — repo SQL can't rebuild the deployed DB | `ragSetup.sql` ↔ `route.ts`             | 🔴   | M      | verify |
-| TD-3  | Ingestion is synchronous inside the upload action             | `actions/documents.ts`                  | 🟡   | L      | done   |
-| TD-10 | No rate limiting / cost controls on `/api/chat`               | `api/chat/route.ts`                     | 🟡   | M      | verify |
-| TD-12 | Signed preview URLs expire silently (10 min)                  | `actions/documents.ts`                  | 🟡   | M      | done   |
-| TD-6  | i18n / language leaks (hardcoded Cyrillic, comments, typo)    | multiple                                | 🟡   | S      | done   |
-| TD-8  | No tests, no CI                                               | repo-wide                               | 🟡   | L      | done   |
-| TD-1  | Inline `Spinner` in `PdfViewer.tsx` (one-component-per-file)  | `components/workspace/PdfViewer.tsx`    | 🟢   | S      | done   |
-| TD-4  | Unused dependency `@tanstack/react-query`                     | `package.json`                          | 🟢   | S      | done   |
-| TD-5  | Dead runtime module `src/lib/prisma.ts`                       | `lib/prisma.ts`                         | 🟢   | S      | done   |
-| TD-7  | Decorative `SearchInput` (no behavior)                        | `components/general`                    | 🟢   | S      | done   |
-| TD-9  | Stock create-next-app boilerplate never replaced              | `README.md`, `layout.tsx`, `public/`    | 🟢   | S      | done   |
-| TD-11 | Deletion ordering can orphan storage files                    | `actions/documents.ts`                  | 🟢   | M      | done   |
-| TD-13 | Chunker is purely character-based                             | `lib/chunk.ts`                          | 🟢   | M      | done   |
-| TD-14 | Minor naming / inert-class inconsistencies                    | multiple                                | 🟢   | S      | done   |
-| TD-15 | Three fonts loaded, only `font-sans` used                     | `app/layout.tsx`                        | 🟢   | S      | done   |
-| TD-16 | Drop cited-chunk text highlighting — jump to page only        | citation / PDF preview                  | 🟡   | S      | done   |
-| TD-17 | Collapse source chips to one page + `+N` picker               | `chat` / `workspace`                    | 🟡   | M      | done   |
+| ID    | Title                                                                  | Area                                    | Prio | Effort | Status |
+| ----- | ---------------------------------------------------------------------- | --------------------------------------- | ---- | ------ | ------ |
+| TD-18 | Plan not updated after successful payment                              | Stripe webhook / checkout               | 🔴   | M      | verify |
+| TD-19 | Chat token usage not counted (metering doesn't land)                   | `api/chat/route.ts` ↔ `increment_usage` | 🔴   | M      | verify |
+| TD-20 | `profiles` row empty after account creation                            | `auth_setup.sql` trigger                | 🔴   | M      | verify |
+| TD-2  | `match_chunks` drift — repo SQL can't rebuild the deployed DB          | `ragSetup.sql` ↔ `route.ts`             | 🔴   | M      | verify |
+| TD-3  | Ingestion is synchronous inside the upload action                      | `actions/documents.ts`                  | 🟡   | L      | done   |
+| TD-10 | No rate limiting / cost controls on `/api/chat`                        | `api/chat/route.ts`                     | 🟡   | M      | verify |
+| TD-12 | Signed preview URLs expire silently (10 min)                           | `actions/documents.ts`                  | 🟡   | M      | done   |
+| TD-6  | i18n / language leaks (hardcoded Cyrillic, comments, typo)             | multiple                                | 🟡   | S      | done   |
+| TD-8  | No tests, no CI                                                        | repo-wide                               | 🟡   | L      | done   |
+| TD-1  | Inline `Spinner` in `PdfViewer.tsx` (one-component-per-file)           | `components/workspace/PdfViewer.tsx`    | 🟢   | S      | done   |
+| TD-4  | Unused dependency `@tanstack/react-query`                              | `package.json`                          | 🟢   | S      | done   |
+| TD-5  | Dead runtime module `src/lib/prisma.ts`                                | `lib/prisma.ts`                         | 🟢   | S      | done   |
+| TD-7  | Decorative `SearchInput` (no behavior)                                 | `components/general`                    | 🟢   | S      | done   |
+| TD-9  | Stock create-next-app boilerplate never replaced                       | `README.md`, `layout.tsx`, `public/`    | 🟢   | S      | done   |
+| TD-11 | Deletion ordering can orphan storage files                             | `actions/documents.ts`                  | 🟢   | M      | done   |
+| TD-13 | Chunker is purely character-based                                      | `lib/chunk.ts`                          | 🟢   | M      | done   |
+| TD-14 | Minor naming / inert-class inconsistencies                             | multiple                                | 🟢   | S      | done   |
+| TD-15 | Three fonts loaded, only `font-sans` used                              | `app/layout.tsx`                        | 🟢   | S      | done   |
+| TD-16 | Drop cited-chunk text highlighting — jump to page only                 | citation / PDF preview                  | 🟡   | S      | done   |
+| TD-17 | Collapse source chips to one page + `+N` picker                        | `chat` / `workspace`                    | 🟡   | M      | done   |
+| TD-21 | Back navigation from the Profile page (logo + back arrow)              | profile / header                        | 🟢   | S      | open   |
+| TD-22 | Show/hide password toggle on the profile password field                | profile / auth                          | 🟢   | S      | open   |
+| TD-24 | Document delete is unresponsive + "Cannot coerce … single JSON object" | `features/documents/actions.ts`         | 🔴   | M      | open   |
+| TD-25 | "All documents" chat resurrects after deleting all files               | `features/chat` / workspace             | 🔴   | M      | open   |
+| TD-27 | Errored (unindexed) docs still listed / previewable                    | documents list / preview                | 🟡   | M      | open   |
+| TD-28 | Profile label "Name" → "Full Name"                                     | profile form                            | 🟢   | S      | open   |
+| TD-29 | Replace "Signed in as" with "Hello, {fullName}"                        | profile / header                        | 🟢   | S      | open   |
+| TD-31 | Delete-file icon not discoverable (mobile + desktop)                   | documents list UI                       | 🟡   | S      | open   |
+| TD-32 | Cross-device session invalidation / empty file list                    | auth session / documents sync           | 🔴   | M      | open   |
 
 ## Items
 
@@ -292,3 +301,93 @@ page, similarity)`. The app calls it with **4 args** (`match_count`,
 - **Fix:** Align the sign-up metadata keys with the trigger's `->>` lookups; backfill
   `email` from the auth record on confirm if needed. Verify against a fresh sign-up.
 - **Effort:** M · **Priority:** 🔴 high · **Status:** done (code+SQL ready — verify on live Supabase/Stripe)
+
+### TD-21 · Back navigation from the Profile page
+
+- **Area:** profile page / `Header`
+- **Problem:** Once on the profile page there's no obvious way back to the workspace —
+  the logo isn't a link and there's no back affordance.
+- **Fix:** Make the header logo navigate home, and add an explicit back arrow on the
+  profile page (label through `useT()`).
+- **Effort:** S · **Priority:** 🟢 low · **Status:** open
+
+### TD-22 · Show/hide password toggle on the profile password field
+
+- **Area:** profile "change password" form / `auth`
+- **Problem:** The password inputs on the profile change-password form have no way to
+  reveal what was typed, so there's no way to catch a typo before submitting.
+- **Fix:** Add an eye toggle to the password field(s) that flips `type` between
+  `password` and `text`; aria-label through `useT()`.
+- **Effort:** S · **Priority:** 🟢 low · **Status:** open
+
+### TD-24 · Document delete is unresponsive + "Cannot coerce the result to a single JSON object"
+
+- **Area:** `src/features/documents/actions.ts` (`removeDocument`, uses `.single()`),
+  delete confirmation modal
+- **Problem:** Clicking delete in the modal appears to do nothing; repeated clicks
+  queue many delete calls that flood the UI with success/error toasts. The failing
+  calls surface `Cannot coerce the result to a single JSON object`, which is PostgREST's
+  error when a `.single()` query matches **0 or >1 rows** — so the delete query isn't
+  matching the row (likely RLS/scoping or an already-deleted row on the second click).
+- **Fix:** Guard the modal's delete button against re-entry (disable + pending state so
+  it can't fire multiple times), and fix the query so the delete reliably targets one
+  row — replace `.single()` with `.maybeSingle()` (or drop it) where zero rows is a
+  valid outcome, and check the returned error before toasting. One toast per action.
+- **Effort:** M · **Priority:** 🔴 high · **Status:** open
+
+### TD-25 · "All documents" chat resurrects after deleting all files
+
+- **Area:** `src/features/chat` (per-scope conversation persistence) / workspace
+- **Problem:** Conversations are persisted per scope, including the "All documents"
+  scope. Deleting every file hides the "All documents" scope in the UI but leaves its
+  stored conversation behind; uploading a new file re-shows the scope with the **old**
+  messages restored. Deleting all files should also clear the "All documents" thread.
+- **Fix:** When the last document is removed, clear/delete the "All documents" scope
+  conversation (and any per-document threads) so a fresh upload starts empty.
+- **Effort:** M · **Priority:** 🔴 high · **Status:** open
+
+### TD-27 · Errored (unindexed) documents still listed and previewable
+
+- **Area:** documents list / `FilePreview` / preview
+- **Problem:** A document that failed ingestion (`status = error`) still shows in the
+  file list and can be opened for preview, even though it has no chunks and can't be
+  chatted with.
+- **Fix:** For `error` docs, suppress the preview and show a clear "couldn't index this
+  file" message instead (copy through `useT()`); offer re-ingest (see TD-3) or remove.
+- **Effort:** M · **Priority:** 🟡 medium · **Status:** open
+
+### TD-28 · Profile label "Name" → "Full Name"
+
+- **Area:** profile form
+- **Problem:** The profile field is labelled "Name" but holds the user's full name.
+- **Fix:** Rename the label (and its i18n key) to "Full Name".
+- **Effort:** S · **Priority:** 🟢 low · **Status:** open
+
+### TD-29 · Replace "Signed in as" with "Hello, {fullName}"
+
+- **Area:** profile / header
+- **Problem:** The "Signed in as …" copy is dry for a portfolio piece.
+- **Fix:** Swap to a friendlier `Hello, {fullName}` greeting via a parameterized
+  `useT()` key (fall back gracefully when `full_name` is empty).
+- **Effort:** S · **Priority:** 🟢 low · **Status:** open
+
+### TD-31 · Delete-file icon not discoverable (mobile + desktop)
+
+- **Area:** documents list UI
+- **Problem:** The delete-file action icon is hard/impossible to see on desktop and
+  essentially invisible on mobile — users can't tell a file is deletable.
+- **Fix:** Make the delete affordance visible and reachable on touch (don't rely on
+  hover-reveal on mobile); ensure adequate contrast/hit-area on both.
+- **Effort:** S · **Priority:** 🟡 medium · **Status:** open
+
+### TD-32 · Cross-device session invalidation / empty file list
+
+- **Area:** auth session (`@supabase/ssr`) / documents list sync
+- **Problem:** Signed in on laptop + phone simultaneously: uploading a file on the phone
+  breaks the laptop session (forces a re-login); uploading on the laptop and refreshing
+  the phone yields an empty file list. Suggests session/token handling that doesn't
+  tolerate concurrent devices, plus a documents fetch that fails silently to empty.
+- **Fix:** Investigate session refresh/cookie handling for concurrent sessions and make
+  the documents list surface fetch errors instead of rendering empty. Reproduce with two
+  devices before/after.
+- **Effort:** M · **Priority:** 🔴 high · **Status:** open

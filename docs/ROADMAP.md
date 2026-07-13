@@ -18,7 +18,7 @@ code live in [TECH_DEBT.md](./TECH_DEBT.md).
 
 - **What:** After jumping to a cited page, highlight the exact cited chunk(s) on the
   text layer. Step 1 (react-pdf render + jump-to-page) is done.
-- **Why:** Closes the citation loop — the user sees *where* on the page the answer came
+- **Why:** Closes the citation loop — the user sees _where_ on the page the answer came
   from, not just which page.
 - **Decided:**
   - Highlight **all retrieved chunks** on the cited page (not just top-1).
@@ -79,11 +79,11 @@ code live in [TECH_DEBT.md](./TECH_DEBT.md).
 OpenAI cost: embeddings + gpt-4o-mini). File size bounds one-time ingestion cost; the
 token budget meters recurring chat cost.
 
-| Plan | File size | Files | Token budget | Requests | Auto-expiry |
-|---|---|---|---|---|---|
-| **Guest** (anon) | ≤ 1 MB | 1 | small, lifetime (~50k) | capped (~15) | yes — see RM-4 |
-| **Free** (registered) | ≤ 5 MB | — | monthly (~500k) | — | no |
-| **Pro** | no limit* | — | large monthly (~5M) | — | no |
+| Plan                  | File size | Files | Token budget           | Requests     | Auto-expiry    |
+| --------------------- | --------- | ----- | ---------------------- | ------------ | -------------- |
+| **Guest** (anon)      | ≤ 1 MB    | 1     | small, lifetime (~50k) | capped (~15) | yes — see RM-4 |
+| **Free** (registered) | ≤ 5 MB    | —     | monthly (~500k)        | —            | no             |
+| **Pro**               | no limit* | —     | large monthly (~5M)    | —            | no             |
 
 <sub>*Numbers are proposals to tune. gpt-4o-mini is cheap (~$0.15/1M in, ~$0.60/1M out),
 so budgets can be generous; "no limit" is practically bounded by the token budget.</sub>
@@ -124,7 +124,7 @@ so budgets can be generous; "no limit" is practically bounded by the token budge
 
 ### RM-5 · Toast notifications (Sonner)
 
-- **What:** A single global toast system for the *outcomes of async actions* — upload
+- **What:** A single global toast system for the _outcomes of async actions_ — upload
   success/error, document remove success/error, chat errors (`useChat` `onError`),
   "reset email sent" (RM-2). Field/validation errors stay inline in forms.
 - **Why:** Feedback is fragmented today (auth → form root error, upload → local
@@ -132,7 +132,7 @@ so budgets can be generous; "no limit" is practically bounded by the token budge
 - **Decided:**
   - **Sonner** (`sonner` — new dep; `npx shadcn add sonner`), position **top-right**,
     `richColors`, dark-aware.
-  - **Auth errors stay inline** in the form (both field validation *and* server errors
+  - **Auth errors stay inline** in the form (both field validation _and_ server errors
     like bad credentials) — not toasts.
   - **Ingestion outcome = toast + badge:** the per-doc status badge stays the source of
     truth; a toast fires only on the terminal transition (ready / error).
@@ -145,3 +145,57 @@ so budgets can be generous; "no limit" is practically bounded by the token budge
   - **i18n:** toast strings go through `useT()`; server-action errors are raw Supabase
     English today — mapping them to i18n keys ties into **TD-6**.
 - **Effort:** S–M · **Status:** done
+
+### RM-6 · Delete account + all associated data
+
+- **What:** A "Delete account" flow (confirm dialog) on the profile page that removes
+  the user's `auth.users` row and cascades everything they own — profile, documents,
+  chunks, chat history, usage — plus their `<user_id>/*` objects in Storage.
+- **Why:** Table-stakes account control for a credible demo; also removes lingering
+  data (GDPR-friendly).
+- **Scope / dependency:**
+  - A user can't delete their own `auth.users` row under RLS — needs a privileged
+    server path (service role / SECURITY DEFINER), like the guest-cleanup job. Reuse the
+    FK-cascade + storage-cleanup pattern from `guestCleanup.sql` / RM-4.
+  - Confirm dialog with explicit intent (type-to-confirm or a clear warning); sign the
+    user out and route to the landing page after deletion.
+- **Effort:** L · **Status:** idea
+
+### RM-7 · Folders to group documents and scope chat
+
+- **What:** Organize uploaded documents into folders and run a conversation scoped to a
+  folder (in addition to today's single-document / all-documents scopes).
+- **Why:** A flat file list doesn't scale; folders let a user keep, say, "Benefits" vs
+  "Onboarding" policies separate and ask questions against just one set.
+- **Scope / dependency:**
+  - New `folders` table (`user_id` + RLS) and a nullable `folder_id` on `documents`.
+  - Extend the chat scope mechanism (currently single-doc / all-docs) with a folder
+    scope; `match_chunks` filters by the folder's `document_ids`.
+  - Conversation persistence is already per-scope — add folder scopes to it.
+- **Effort:** L · **Status:** idea
+
+### RM-8 · Guest header sign-in for existing users
+
+- **What:** A "Sign in" affordance in the header while in guest (demo) mode that routes
+  an already-registered user to the normal auth flow.
+- **Why:** A user who has an account but clicked "Try me" is stuck in a guest session
+  with no way to reach sign-in from the header.
+- **Scope / dependency:**
+  - Builds on RM-4 (guest mode). Copy through `useT()`. Decide whether signing in from a
+    guest session should offer to preserve/convert the guest's uploaded data (RM-4 already
+    notes anon→account linking) or simply switch accounts.
+- **Effort:** S · **Status:** done · **Decided:** switch accounts (existing user); "Save
+  account" already covers converting/preserving guest data into a new account.
+
+### RM-9 · RTL support (Hebrew / Arabic)
+
+- **What:** Add a right-to-left locale and direction handling so the app renders
+  correctly for Hebrew/Arabic.
+- **Why:** Demonstrates RTL capability to prospective clients in those markets.
+- **Scope / dependency:**
+  - Add an RTL locale (`next-intl` config + `messages/<code>.json`); set `dir="rtl"`
+    from the active locale on `<html>`.
+  - Audit layout for directional assumptions — prefer logical CSS properties
+    (`margin-inline`, `padding-inline`, `start/end`) over `left/right`, and mirror
+    directional icons (back arrows, chevrons).
+- **Effort:** L · **Status:** idea

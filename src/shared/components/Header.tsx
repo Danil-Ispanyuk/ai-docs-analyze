@@ -20,9 +20,14 @@ export function Header({ isGuest, email, plan }: HeaderProps) {
 			<Logo isGuest={isGuest} />
 			<div className="flex items-center gap-3">
 				{isGuest ? (
-					<Button size="sm" render={<Link href="/save-account" />}>
-						{t("Auth.saveAccount")}
-					</Button>
+					<>
+						<Button variant="ghost" size="sm" render={<Link href="/sign-in" />}>
+							{t("Auth.signIn")}
+						</Button>
+						<Button size="sm" render={<Link href="/save-account" />}>
+							{t("Auth.saveAccount")}
+						</Button>
+					</>
 				) : (
 					plan !== PLAN_TYPES.PRO && !isGuest && <UpgradeButton />
 				)}
