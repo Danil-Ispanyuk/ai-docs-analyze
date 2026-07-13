@@ -21,7 +21,6 @@ interface FilePreviewProps {
 
 type PreviewState = { id: string; url?: string; error?: string };
 
-// Signed URLs expire; if the viewer fails to load one, re-sign once before giving up.
 const MAX_URL_RETRIES = 1;
 
 export function FilePreview({ documentId, name, page }: FilePreviewProps) {
@@ -43,7 +42,6 @@ export function FilePreview({ documentId, name, page }: FilePreviewProps) {
 		};
 	}, [documentId]);
 
-	// Re-sign the URL when the viewer reports a load error (most often a silent expiry).
 	const handleLoadError = () => {
 		if (!documentId || retriesRef.current >= MAX_URL_RETRIES) return;
 		retriesRef.current += 1;

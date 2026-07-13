@@ -30,14 +30,14 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
 		maxFileSize: null,
 		storageLimit: 2 * GB,
 		maxFiles: null,
-		tokenBudget: 500_000,
+		tokenBudget: 150_000,
 		requestCap: null,
 	},
 	pro: {
 		maxFileSize: null,
 		storageLimit: 15 * GB,
 		maxFiles: null,
-		tokenBudget: 5_000_000,
+		tokenBudget: 300_000,
 		requestCap: null,
 	},
 };

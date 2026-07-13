@@ -1,12 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-// Public routes reachable without a session. Everything else requires auth.
-// /reset-password is intentionally not here: it's reached with an active
-// recovery session, so the normal auth guard already lets it through.
-// /api/stripe/webhook has no session (it's a server-to-server call from Stripe,
-// authenticated by its signature); without this the guard 307s it to /sign-in
-// and Stripe — which doesn't follow redirects — never reaches the handler.
 const PUBLIC_PREFIXES = [
 	"/sign-in",
 	"/sign-up",
@@ -15,8 +9,6 @@ const PUBLIC_PREFIXES = [
 	"/api/stripe/webhook",
 ];
 
-// Refreshes the Supabase session on every request and guards protected routes.
-// Called from the root middleware.ts.
 export async function updateSession(request: NextRequest) {
 	let supabaseResponse = NextResponse.next({ request });
 
@@ -39,34 +31,26 @@ export async function updateSession(request: NextRequest) {
 		},
 	);
 
-	// IMPORTANT: do not run any code between createServerClient and getUser().
-	// getUser() revalidates the token and keeps the session fresh.
 	const {
 		data: { user },
 	} = await supabase.auth.getUser();
 
 	const { pathname } = request.nextUrl;
-	// "/" is the public landing page for logged-out visitors (guest demo, RM-4).
-	// Matched exactly — startsWith("/") would make every route public.
 	const isPublic =
 		pathname === "/" || PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 	const isAuthPage = pathname.startsWith("/sign-in") || pathname.startsWith("/sign-up");
 
-	// Unauthenticated users may only reach public routes.
 	if (!user && !isPublic) {
 		const url = request.nextUrl.clone();
 		url.pathname = "/sign-in";
 		return NextResponse.redirect(url);
 	}
 
-	// Authenticated users shouldn't see the sign-in / sign-up pages.
 	if (user && isAuthPage) {
 		const url = request.nextUrl.clone();
 		url.pathname = "/";
 		return NextResponse.redirect(url);
 	}
 
-	// IMPORTANT: return supabaseResponse as-is so the refreshed auth cookies
-	// are sent back to the browser.
 	return supabaseResponse;
 }

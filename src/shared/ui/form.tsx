@@ -92,8 +92,6 @@ function FormLabel({ className, ...props }: React.ComponentProps<typeof Label>) 
 	);
 }
 
-// Base UI's `useRender` replaces Radix's <Slot>: it merges the field id and
-// aria-* onto the single child (the input) without an extra wrapper element.
 function FormControl({ children }: { children: React.ReactElement }) {
 	const { error, formItemId, formDescriptionId, formMessageId } = useFormField();
 

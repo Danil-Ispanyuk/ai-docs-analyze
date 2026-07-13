@@ -1,10 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
-// Mutable per-test state reachable from the hoisted module mocks below.
 const state = vi.hoisted(() => ({
 	user: null as { id: string } | null,
 	supabase: null as unknown,
-	// Records everything written into the UI-message stream (e.g. the data-sources part).
 	writes: [] as { type: string; data?: unknown }[],
 	embedInputs: [] as string[][],
 	executePromise: null as Promise<void> | null,
@@ -30,7 +28,6 @@ vi.mock("@ai-sdk/openai", () => ({
 }));
 
 vi.mock("next/server", () => ({
-	// Swallow the metering hook so an unresolved token promise can't hang the test.
 	after: () => {},
 }));
 
@@ -141,7 +138,6 @@ describe("POST /api/chat — guards", () => {
 	});
 
 	it("returns 429 when the plan request cap is reached", async () => {
-		// Guest cap is 15 requests.
 		state.supabase = makeSupabase({
 			plan: "guest",
 			usage: { tokens_used: 0, requests_used: 15 },
@@ -152,7 +148,6 @@ describe("POST /api/chat — guards", () => {
 	});
 
 	it("returns 429 when the plan token budget is reached", async () => {
-		// Guest budget is 50,000 tokens; free lifts the request cap so only the budget bites.
 		state.supabase = makeSupabase({
 			plan: "free",
 			usage: { tokens_used: 500_000, requests_used: 0 },
@@ -188,7 +183,6 @@ describe("POST /api/chat — happy path", () => {
 			},
 			match: [
 				{ document_id: "doc-1", name: "Policy.pdf", content: "a", page: 1, similarity: 0.9 },
-				// Same doc + page → collapses into the first source.
 				{ document_id: "doc-1", name: "Policy.pdf", content: "b", page: 1, similarity: 0.8 },
 				{ document_id: "doc-2", name: "Handbook.pdf", content: "c", page: 4, similarity: 0.7 },
 			],

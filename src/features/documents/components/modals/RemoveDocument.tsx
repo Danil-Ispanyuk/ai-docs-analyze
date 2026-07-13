@@ -14,8 +14,6 @@ import { type ReactElement } from "react";
 interface RemoveDocumentModalProps {
 	documentTitle: string;
 	onSubmit: () => void;
-	// The trigger element (e.g. the ✕ button). Passed via `render` so Base UI
-	// turns it INTO the trigger instead of wrapping it in another <button>.
 	children: ReactElement;
 }
 

@@ -3,7 +3,6 @@ import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { UsageMeter } from "./UsageMeter";
 
-// The colored fill is the inner div carrying the width style; grab it by that.
 function getBar(container: HTMLElement): HTMLElement {
 	const bar = container.querySelector<HTMLElement>("[style*='width']");
 	if (!bar) throw new Error("meter bar not found");
@@ -39,7 +38,6 @@ describe("UsageMeter", () => {
 		expect(getBar(over.container).style.width).toBe("100%");
 
 		const under = render(<UsageMeter label="l" valueLabel="v" percent={-20} />);
-		// The second render mounts alongside; scope the query to its own container.
 		expect(getBar(under.container).style.width).toBe("0%");
 	});
 

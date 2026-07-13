@@ -12,8 +12,6 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/ui/form";
 
-// `expired` is set when the user arrived here from an invalid/expired recovery
-// link (see src/app/auth/confirm/route.ts) and needs to request a new one.
 export function ForgotPasswordForm({ expired }: { expired?: boolean }) {
 	const t = useT();
 	const [isPending, startTransition] = useTransition();

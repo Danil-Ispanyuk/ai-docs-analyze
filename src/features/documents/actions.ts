@@ -79,9 +79,6 @@ export async function createDocument(input: {
 		return { error: "Not authenticated" };
 	}
 
-	// Plan gate — enforce limits before any paid work (ingestion/embeddings).
-	// The file is already in Storage at this point, so any rejection removes it
-	// to avoid orphaning the object.
 	const { data: profile } = await supabase
 		.from("profiles")
 		.select("plan")
@@ -89,7 +86,6 @@ export async function createDocument(input: {
 		.single();
 	const limits = getPlanLimits(profile?.plan);
 
-	// Max files: count what the user already has (RLS scopes this to them).
 	if (limits.maxFiles !== null) {
 		const { count } = await supabase.from("documents").select("id", { count: "exact", head: true });
 		if ((count ?? 0) >= limits.maxFiles) {
@@ -98,7 +94,6 @@ export async function createDocument(input: {
 		}
 	}
 
-	// Max file size: trust Storage's metadata, not the (spoofable) client check.
 	const folder = input.storagePath.split("/").slice(0, -1).join("/");
 	const fileName = input.storagePath.split("/").pop() ?? "";
 	const { data: files } = await supabase.storage
@@ -111,8 +106,6 @@ export async function createDocument(input: {
 		return { error: `File is too large (max ${maxMb} MB on your plan).` };
 	}
 
-	// Total storage: sum what the user already holds (RLS scopes this to them)
-	// and reject if this upload would push them past the plan's storage budget.
 	const { data: sizeRows } = await supabase.from("documents").select("size");
 	const usedBytes = (sizeRows ?? []).reduce((sum, row) => sum + (row.size ?? 0), 0);
 	if (usedBytes + uploadedSize > limits.storageLimit) {
@@ -137,10 +130,6 @@ export async function createDocument(input: {
 		return { error: error.message };
 	}
 
-	// Ingestion is a separate step, triggered by the client after this returns, so the
-	// upload request finishes fast and a large PDF doesn't risk a serverless timeout
-	// here. The row starts as `pending`; ingestDocument moves it to processing → ready
-	// (or error), and the client re-ingests failed docs on demand.
 	return { documentId: data.id };
 }
 
@@ -159,9 +148,6 @@ export async function removeDocument(id: string): Promise<{ error?: string }> {
 		};
 	}
 
-	// Remove the storage object before the DB row so a storage failure aborts the
-	// delete instead of orphaning the file (the row still points at it, so it can be
-	// retried). A missing object is not an error for Storage, so this is idempotent.
 	const { error: storageError } = await supabase.storage
 		.from(DOCUMENTS_BUCKET)
 		.remove([doc.storage_path]);

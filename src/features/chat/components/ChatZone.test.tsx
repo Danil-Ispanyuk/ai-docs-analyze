@@ -6,7 +6,6 @@ import { renderWithIntl } from "@/shared/test/intl";
 import type { ChatMessage } from "@/features/chat/types";
 import type { PlanUsage } from "@/features/billing/service";
 
-// Controllable useChat return; mutate before render to drive each scenario.
 const chat = vi.hoisted(() => ({
 	messages: [] as ChatMessage[],
 	sendMessage: vi.fn(),
@@ -70,7 +69,6 @@ describe("ChatZone", () => {
 	it("does not send when the input is only whitespace", async () => {
 		render();
 		await userEvent.type(screen.getByRole("textbox"), "   ");
-		// Button stays disabled, so a click can't submit.
 		expect(document.querySelector('button[type="submit"]')).toBeDisabled();
 		expect(chat.sendMessage).not.toHaveBeenCalled();
 	});
@@ -99,7 +97,6 @@ describe("ChatZone", () => {
 
 		expect(screen.getByText("Where is the policy?")).toBeInTheDocument();
 		expect(screen.getByText("It is on page 2.")).toBeInTheDocument();
-		// SourceChips renders the citation as a button.
 		expect(screen.getByRole("button", { name: /Policy\.pdf/ })).toBeInTheDocument();
 	});
 

@@ -10,4 +10,8 @@ export {
 	QuoteDownIcon as CitationIcon,
 	Target01Icon as GroundedIcon,
 	SecurityLockIcon as PrivacyIcon,
+	ZoomInAreaIcon as ZoomInIcon,
+	ZoomOutAreaIcon as ZoomOutIcon,
+	Maximize01Icon as ExpandIcon,
+	Minimize01Icon as CollapseIcon,
 } from "@hugeicons/core-free-icons";

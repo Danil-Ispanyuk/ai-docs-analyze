@@ -14,9 +14,6 @@ import { getCurrentUser } from "@/features/auth/service";
 
 export const maxDuration = 30;
 
-// Per-user burst limit for chat: at most RATE_LIMIT_MAX requests per
-// RATE_LIMIT_WINDOW_SECONDS, enforced in the DB (see prisma/sql/rateLimitSetup.sql).
-// This sits on top of the cumulative plan caps below (get_usage / plan budget).
 const RATE_LIMIT_MAX = 10;
 const RATE_LIMIT_WINDOW_SECONDS = 60;
 const MATCH_COUNT = 12;
@@ -157,11 +154,6 @@ export async function POST(req: Request) {
 		context || "(no relevant context found)",
 	].join("\n");
 
-	// Meter the chat cost (prompt + completion tokens) against the plan budget. The DB
-	// write runs in an after() hook — not inline in onFinish — because onFinish fires as
-	// the stream closes, and the serverless function could otherwise be torn down before
-	// the RPC lands, so the counter never moved (TD-19). after() keeps the function alive
-	// until the write completes. Embedding tokens aren't counted — they're negligible.
 	let resolveTokens!: (tokens: number) => void;
 	const tokensUsed = new Promise<number>((resolve) => {
 		resolveTokens = resolve;
@@ -175,7 +167,6 @@ export async function POST(req: Request) {
 
 	const stream = createUIMessageStream<ChatMessage>({
 		execute: async ({ writer }) => {
-			// Send the sources as a data-part; the id routes it into message.parts on the client.
 			writer.write({ type: "data-sources", id: "sources", data: sources });
 
 			const result = streamText({
@@ -188,7 +179,6 @@ export async function POST(req: Request) {
 							(totalUsage?.inputTokens ?? 0) + (totalUsage?.outputTokens ?? 0),
 					);
 				},
-				// Still settle the meter (with 0) if the model call errors, so after() never hangs.
 				onError: () => resolveTokens(0),
 			});
 			writer.merge(result.toUIMessageStream());

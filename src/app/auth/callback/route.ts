@@ -2,10 +2,6 @@ import { NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/shared/config/supabase/server";
 
-// Copy the confirmed user's email / full name onto their profile row. The
-// handle_new_user insert trigger runs at sign-up, before email confirmation, when
-// auth.users.email can still be null — so the profile can start blank (TD-20). Now
-// that we have a session, backfill it (idempotent; runs under the user's own RLS).
 async function backfillProfile(supabase: SupabaseClient) {
 	const {
 		data: { user },

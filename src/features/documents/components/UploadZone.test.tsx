@@ -80,8 +80,6 @@ describe("UploadZone", () => {
 
 	it("rejects a non-PDF file without uploading", async () => {
 		render();
-		// applyAccept:false bypasses the input's accept filter so the component's own
-		// type guard is what rejects the file (that's the branch under test).
 		await userEvent.upload(fileInput(), new File(["x"], "note.txt", { type: "text/plain" }), {
 			applyAccept: false,
 		});
@@ -92,7 +90,6 @@ describe("UploadZone", () => {
 	});
 
 	it("rejects a PDF larger than the plan's file-size limit", async () => {
-		// Guest cap is 1 MB; hand it a 1 MB + 1 byte PDF.
 		render({ plan: "guest" });
 		await userEvent.upload(fileInput(), pdf("big.pdf", 1024 * 1024 + 1));
 
@@ -134,7 +131,6 @@ describe("UploadZone", () => {
 	});
 
 	it("blocks uploads and shows the limit notice when the file cap is reached", () => {
-		// Guest allows a single file; one existing doc trips the cap.
 		render({ plan: "guest", documents: [makeDoc()] });
 		expect(screen.getByText("File limit reached on your plan.")).toBeInTheDocument();
 		expect(fileInput()).toBeDisabled();

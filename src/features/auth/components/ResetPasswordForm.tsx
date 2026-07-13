@@ -19,7 +19,6 @@ export function ResetPasswordForm() {
 		defaultValues: { password: "" },
 	});
 
-	// On success the action redirects to "/", so there's no success state to render.
 	const onSubmit = (values: ResetPasswordInput) => {
 		startTransition(async () => {
 			const result = await resetPassword(values);

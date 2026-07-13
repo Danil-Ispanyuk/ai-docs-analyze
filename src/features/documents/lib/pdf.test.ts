@@ -1,7 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
-// Stub unpdf so the extractor runs without a real PDF: getDocumentProxy just
-// echoes a marker, and extractText returns whatever page array the test sets.
 const unpdf = vi.hoisted(() => ({
 	getDocumentProxy: vi.fn(),
 	extractText: vi.fn(),

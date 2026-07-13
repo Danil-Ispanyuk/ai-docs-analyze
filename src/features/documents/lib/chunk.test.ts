@@ -46,12 +46,10 @@ describe("chunkPages", () => {
 			overlap: 5,
 		});
 		expect(chunks.length).toBeGreaterThan(1);
-		// Every chunk carries whole sentences (never a mid-word cut) and stays on the page.
 		for (const chunk of chunks) {
 			expect(chunk.page).toBe(1);
 			expect(chunk.content).toMatch(/\.$/);
 		}
-		// A sentence should reappear across a boundary (overlap), e.g. "Bravo two.".
 		const bravoCount = chunks.filter((chunk) => chunk.content.includes("Bravo two.")).length;
 		expect(bravoCount).toBeGreaterThan(1);
 	});
@@ -59,7 +57,6 @@ describe("chunkPages", () => {
 	it("hard-splits a single sentence longer than `size` on character windows", () => {
 		const longWord = "x".repeat(50);
 		const chunks = chunkPages([{ page: 2, text: longWord }], { size: 20, overlap: 5 });
-		// step = size - overlap = 15 → starts at 0,15,30,45 → 4 windows.
 		expect(chunks).toHaveLength(4);
 		for (const chunk of chunks) {
 			expect(chunk.content.length).toBeLessThanOrEqual(20);

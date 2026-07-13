@@ -17,7 +17,6 @@ describe("getPlanLimits", () => {
 		expect(PLAN_LIMITS.guest.requestCap).toBe(15);
 		expect(PLAN_LIMITS.guest.tokenBudget).toBe(50_000);
 		expect(PLAN_LIMITS.guest.maxFiles).toBe(1);
-		// Paid plans lift the per-request/file caps.
 		expect(PLAN_LIMITS.free.requestCap).toBeNull();
 		expect(PLAN_LIMITS.pro.maxFiles).toBeNull();
 	});
@@ -55,7 +54,6 @@ describe("formatStorage", () => {
 	});
 
 	it("drops decimals once a value reaches double digits", () => {
-		// 12.3 MB → the <10 branch is false, so no fractional digits are shown.
 		expect(formatStorage(12.3 * 1024 * 1024)).toBe("12 MB");
 	});
 });

@@ -1,7 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
-// Shared spies referenced from the mocked Supabase client. `vi.hoisted` lets the
-// vi.mock factory (hoisted to the top of the module) reach them safely.
 const spies = vi.hoisted(() => ({
 	single: vi.fn(),
 	removeStorage: vi.fn(),
@@ -36,7 +34,6 @@ describe("removeDocument (TD-11: storage before DB row)", () => {
 		const result = await removeDocument("doc-1");
 
 		expect(result).toEqual({ error: "storage boom" });
-		// The row must survive so the delete can be retried — no orphaned file.
 		expect(spies.deleteEq).not.toHaveBeenCalled();
 	});
 

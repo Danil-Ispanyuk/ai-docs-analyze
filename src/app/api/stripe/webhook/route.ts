@@ -2,13 +2,8 @@ import type Stripe from "stripe";
 import { stripe, planFromSubscriptionStatus } from "@/features/billing/stripe";
 import { createAdminClient } from "@/shared/config/supabase/admin";
 
-// Stripe needs the raw request body to verify the signature, so this route must
-// run on the Node runtime and read req.text() (never req.json()).
 export const runtime = "nodejs";
 
-// Write the subscription's state onto the matching profile (looked up by the
-// Stripe customer id). Runs under the service role — there is no user session on
-// a webhook — so it bypasses RLS by design (see lib/supabase/admin.ts).
 async function syncSubscription(subscription: Stripe.Subscription) {
 	const admin = createAdminClient();
 	const customerId =
@@ -22,10 +17,6 @@ async function syncSubscription(subscription: Stripe.Subscription) {
 		plan: planFromSubscriptionStatus(subscription.status),
 	};
 
-	// Match by the Stripe customer id persisted at checkout; fall back to the userId
-	// stashed in subscription metadata so the plan still lands (and the customer id is
-	// backfilled) if the profile never recorded the customer id (TD-18). Returning the
-	// affected rows lets us detect — and log — a miss instead of silently no-op'ing.
 	const query = userId
 		? admin
 				.from("profiles")
@@ -76,7 +67,6 @@ export async function POST(req: Request) {
 			}
 		}
 	} catch (error) {
-		// Log and 500 so Stripe retries — the DB write is the only failure mode here.
 		console.error(`Stripe webhook handler failed for ${event.type}:`, error);
 		return new Response("Webhook handler error", { status: 500 });
 	}

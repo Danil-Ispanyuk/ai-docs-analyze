@@ -8,7 +8,7 @@ export function AuthLayout({ children }: PropsWithChildren) {
 
 	return (
 		<main className="relative flex min-h-full flex-1 flex-col items-center justify-center overflow-hidden p-6 max-md:px-3">
-			{/* Brand-tinted ambient background */}
+			{}
 			<div
 				aria-hidden
 				className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(50rem_36rem_at_50%_-10%,var(--accent),transparent_70%)]"

@@ -5,7 +5,6 @@ import userEvent from "@testing-library/user-event";
 import { SourceChips } from "./SourceChips";
 import type { Source } from "@/features/chat/types";
 
-// Stub translations with readable, assertable strings.
 vi.mock("@/shared/config/i18n", () => ({
 	useT: () => (key: string, vars?: Record<string, unknown>) => {
 		if (key === "Workspace.sourcePage") return `p.${vars?.page}`;
@@ -24,10 +23,8 @@ const sources: Source[] = [
 describe("SourceChips", () => {
 	it("groups pages of the same document into one primary chip", () => {
 		render(<SourceChips sources={sources} onSelect={() => {}} />);
-		// One primary chip per document (not one per page).
 		expect(screen.getByRole("button", { name: /Policy\.pdf · p\.1/ })).toBeInTheDocument();
 		expect(screen.getByRole("button", { name: /Handbook\.pdf · p\.5/ })).toBeInTheDocument();
-		// The extra Policy page hides behind a "+1" picker button, not its own chip.
 		expect(screen.queryByRole("button", { name: /Policy\.pdf · p\.2/ })).not.toBeInTheDocument();
 		expect(screen.getByRole("button", { name: "more pages" })).toHaveTextContent("+1");
 	});
@@ -54,7 +51,6 @@ describe("SourceChips", () => {
 		await userEvent.click(extraPage);
 
 		expect(onSelect).toHaveBeenCalledWith("d1", 2);
-		// Picking a page closes the picker again.
 		expect(screen.getByRole("button", { name: "more pages" })).toHaveAttribute(
 			"aria-expanded",
 			"false",

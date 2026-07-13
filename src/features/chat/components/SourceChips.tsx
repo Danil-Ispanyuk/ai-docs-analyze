@@ -7,9 +7,6 @@ import type { Source } from "@/features/chat/types";
 
 type SourceGroup = { documentId: string; name: string; pages: (number | null)[] };
 
-// One answer can cite several pages of the same document. Collapse those into a
-// single group per document so the message shows one primary chip + a "+N" picker
-// instead of a chip per page.
 function groupSources(sources: Source[]): SourceGroup[] {
 	const byDocument = new Map<string, SourceGroup>();
 	for (const source of sources) {

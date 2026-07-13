@@ -14,8 +14,6 @@ export const metadata: Metadata = {
 		"Upload your PDFs and ask questions in plain language. Every answer cites the exact file and page, and says \"I don't know\" when it's not in your documents.",
 };
 
-// maximumScale: 1 stops iOS Safari from auto-zooming when a form field is
-// focused (its default behavior for inputs whose font-size is under 16px).
 export const viewport: Viewport = {
 	width: "device-width",
 	initialScale: 1,

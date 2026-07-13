@@ -128,13 +128,10 @@ export function UploadZone({
 				return;
 			}
 			toast.success(t("Workspace.uploadQueued"));
-			// Ingest without blocking the upload transition; refresh when it settles.
 			runIngestion(result.documentId);
 		});
 	};
 
-	// Fire-and-forget ingestion: the doc is already visible as `pending`, so we just
-	// refresh once it flips to ready/error rather than blocking the UI on it.
 	const runIngestion = (documentId: string) => {
 		ingestDocument(documentId).then((res) => {
 			if (res?.error) toast.error(t("Workspace.uploadError"));

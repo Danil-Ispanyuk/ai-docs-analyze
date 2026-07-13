@@ -47,8 +47,6 @@ export async function signUp(values: SignUpInput): Promise<AuthResult> {
 
 	const supabase = await createClient();
 
-	// Email confirmation is disabled in Supabase, so signUp returns a live
-	// session immediately — sign the user straight into the app.
 	const { error } = await supabase.auth.signUp({
 		email: parsed.data.email,
 		password: parsed.data.password,
@@ -136,8 +134,6 @@ export async function convertGuestAccount(values: ConvertAccountInput): Promise<
 		return { error: error.message };
 	}
 
-	// The profile row was created as a guest with no full_name; the new-user
-	// trigger only fires on insert, so write full_name and the plan here.
 	await supabase
 		.from("profiles")
 		.update({ full_name: parsed.data.fullName, plan: PLAN_TYPES.FREE })

@@ -47,7 +47,6 @@ describe("ForgotPasswordForm", () => {
 			}),
 		);
 		expect(toastSpy.success).toHaveBeenCalledWith("Reset link sent.");
-		// The form is reset after a successful send.
 		await waitFor(() => expect(email.value).toBe(""));
 	});
 

@@ -10,8 +10,6 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/ui/form";
 
-// Guest → account conversion form. On success the guest's data is kept and the
-// action signs the user straight into the app (email confirmation is disabled).
 export function SaveAccountForm() {
 	const t = useT();
 	const [isPending, startTransition] = useTransition();

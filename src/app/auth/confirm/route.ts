@@ -11,10 +11,6 @@ export async function GET(request: NextRequest) {
 
 	const supabase = await createClient();
 
-	// PKCE flow (Supabase default): the email link routes through /auth/v1/verify,
-	// which hands us back a one-time `code` to exchange for a session. Recovery
-	// links arrive this way, so we must handle it — otherwise the valid code is
-	// dropped and the (now consumed) link looks "expired" on the next click.
 	if (code) {
 		const { error } = await supabase.auth.exchangeCodeForSession(code);
 		if (!error) {
@@ -22,7 +18,6 @@ export async function GET(request: NextRequest) {
 		}
 	}
 
-	// OTP flow: used when the email template links here directly with a token_hash.
 	if (tokenHash && type) {
 		const { error } = await supabase.auth.verifyOtp({
 			type,
@@ -33,9 +28,6 @@ export async function GET(request: NextRequest) {
 		}
 	}
 
-	// A failed/expired recovery link should send the user back to request a new
-	// one, not to sign-in. In the PKCE flow there's no `type`, so also infer
-	// recovery from the destination (`next` → /reset-password).
 	if (type === "recovery" || next.startsWith("/reset-password")) {
 		return NextResponse.redirect(`${origin}/forgot-password?expired=1`);
 	}

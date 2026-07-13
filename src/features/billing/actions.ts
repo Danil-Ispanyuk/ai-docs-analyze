@@ -4,9 +4,6 @@ import { createClient } from "@/shared/config/supabase/server";
 import { stripe, STRIPE_PRICE_ID } from "@/features/billing/stripe";
 import { getCurrentUser } from "@/features/auth/service";
 
-// Start a hosted Stripe Checkout (subscription) for the Pro plan and return its
-// URL. The client redirects the browser there; the webhook flips profiles.plan
-// once payment succeeds (see app/api/stripe/webhook/route.ts).
 export async function createCheckoutSession(): Promise<{ url?: string; error?: string }> {
 	const supabase = await createClient();
 	const user = await getCurrentUser();
@@ -20,8 +17,6 @@ export async function createCheckoutSession(): Promise<{ url?: string; error?: s
 
 	if (profile?.plan === "pro") return { error: "You are already on the Pro plan." };
 
-	// Reuse the Stripe customer if we have one, otherwise create it and remember
-	// the id on the profile (owner can update their own row under RLS).
 	let customerId = profile?.stripe_customer_id ?? undefined;
 	if (!customerId) {
 		const customer = await stripe.customers.create({
@@ -39,7 +34,6 @@ export async function createCheckoutSession(): Promise<{ url?: string; error?: s
 			mode: "subscription",
 			customer: customerId,
 			line_items: [{ price: STRIPE_PRICE_ID, quantity: 1 }],
-			// Redundant safety net so the webhook can always resolve the user.
 			subscription_data: { metadata: { userId: user.id } },
 			success_url: `${appUrl}/?checkout=success`,
 			cancel_url: `${appUrl}/?checkout=cancel`,
