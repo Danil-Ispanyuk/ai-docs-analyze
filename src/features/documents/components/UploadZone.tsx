@@ -6,6 +6,7 @@ import { useT } from "@/shared/config/i18n";
 import { cn } from "@/shared/lib/utils";
 import { createClient } from "@/shared/config/supabase/client";
 import { createDocument, ingestDocument, removeDocument } from "@/features/documents/actions";
+import { clearChatMessages } from "@/features/chat/actions";
 import { DOCUMENTS_BUCKET, type DocumentRow } from "@/features/documents/service";
 import type { FolderRow } from "@/features/folders/service";
 import type { ChatScope } from "@/features/chat/types";
@@ -17,6 +18,7 @@ import { UsageMeter } from "@/features/billing/components/UsageMeter";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { DocumentIcon, UploadIcon, InformationCircleIcon } from "@/shared/assets/icons";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
+import { Button } from "@/shared/ui/button";
 
 interface UploadZoneProps {
 	userId: string;
@@ -24,6 +26,7 @@ interface UploadZoneProps {
 	documents: DocumentRow[];
 	folders: FolderRow[];
 	scope: ChatScope;
+	loadError?: boolean;
 	onSelectAll: () => void;
 	onSelectDocument: (id: string) => void;
 	onSelectFolder: (id: string) => void;
@@ -36,6 +39,7 @@ export function UploadZone({
 	documents,
 	folders,
 	scope,
+	loadError = false,
 	onSelectAll,
 	onSelectDocument,
 	onSelectFolder,
@@ -152,11 +156,18 @@ export function UploadZone({
 	};
 
 	const handleRemove = (id: string) => {
+		// Removing the last document leaves the "all documents" thread orphaned — it
+		// has no document/folder FK to cascade on — so it would resurface (with old
+		// messages) on the next upload. Clear it here so a fresh upload starts empty.
+		const isLastDocument = documents.length === 1;
 		startRemove(async () => {
 			const result = await removeDocument(id);
 			if (result?.error) {
 				toast.error(result.error);
 				return;
+			}
+			if (isLastDocument) {
+				await clearChatMessages({ documentId: null, folderId: null });
 			}
 			if (scope.documentId === id) onSelectAll();
 			router.refresh();
@@ -274,7 +285,15 @@ export function UploadZone({
 				)}
 			</div>
 
-			{documents.length === 0 && folders.length === 0 ? (
+			{loadError ? (
+				<div className="flex flex-1 flex-col items-center justify-center gap-2 text-center text-foreground/50">
+					<HugeiconsIcon icon={InformationCircleIcon} className="size-6 text-destructive/70" />
+					<p className="text-xs">{t("Workspace.documentsLoadError")}</p>
+					<Button variant="outline" size="sm" onClick={() => router.refresh()}>
+						{t("Workspace.documentsLoadRetry")}
+					</Button>
+				</div>
+			) : documents.length === 0 && folders.length === 0 ? (
 				<div className="flex flex-1 flex-col items-center justify-center gap-2 text-center text-foreground/40">
 					<HugeiconsIcon icon={DocumentIcon} className="size-6" />
 					<p className="text-xs">{t("Workspace.documentsEmpty")}</p>

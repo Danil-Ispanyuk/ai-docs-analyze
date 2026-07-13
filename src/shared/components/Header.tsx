@@ -10,10 +10,11 @@ import { Logo } from "./Logo";
 type HeaderProps = {
 	isGuest: boolean;
 	email: string;
+	fullName?: string | null;
 	plan: string;
 };
 
-export function Header({ isGuest, email, plan }: HeaderProps) {
+export function Header({ isGuest, email, fullName, plan }: HeaderProps) {
 	const t = useT();
 
 	return (
@@ -34,7 +35,9 @@ export function Header({ isGuest, email, plan }: HeaderProps) {
 					plan !== PLAN_TYPES.PRO && !isGuest && <UpgradeButton />
 				)}
 				<span className="hidden text-sm text-foreground/60 sm:inline">
-					{isGuest ? t("Workspace.guestSession") : t("Workspace.signedInAs", { email })}
+					{isGuest
+						? t("Workspace.guestSession")
+						: t("Workspace.greeting", { name: fullName?.trim() || email })}
 				</span>
 				{!isGuest && (
 					<Button variant="ghost" size="sm" render={<Link href="/profile" />}>

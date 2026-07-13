@@ -22,4 +22,7 @@ export {
 	PencilEdit02Icon as EditIcon,
 	Delete02Icon as DeleteIcon,
 	MoreHorizontalIcon as MoreIcon,
+	ViewIcon as EyeIcon,
+	ViewOffSlashIcon as EyeOffIcon,
+	ArrowLeft01Icon as ArrowLeftIcon,
 } from "@hugeicons/core-free-icons";

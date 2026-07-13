@@ -1,7 +1,10 @@
+import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { UpgradeButton } from "@/features/billing/components/UpgradeButton";
 import type { BillingOverview } from "@/features/profile/service";
 import { PLAN_TYPES } from "@/shared/constants/general";
+import { ArrowLeftIcon } from "@/shared/assets/icons";
 import { ChangePasswordForm } from "./ChangePasswordForm";
 import { PaymentHistory } from "./PaymentHistory";
 import { CancelSubscriptionButton } from "./CancelSubscriptionButton";
@@ -30,6 +33,13 @@ export async function ProfileContent({ overview, email, fullName }: ProfileConte
 
 	return (
 		<div className="mx-auto w-full max-w-2xl space-y-6 px-4 py-8">
+			<Link
+				href="/"
+				className="inline-flex items-center gap-1.5 text-sm text-foreground/60 transition-colors hover:text-foreground"
+			>
+				<HugeiconsIcon icon={ArrowLeftIcon} className="size-4 rtl:-scale-x-100" />
+				{t("Profile.back")}
+			</Link>
 			<h1 className="font-heading text-2xl font-semibold tracking-tight">{t("Profile.title")}</h1>
 
 			<section className="space-y-4 rounded-3xl border border-border bg-card p-6 text-card-foreground">

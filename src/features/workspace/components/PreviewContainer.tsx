@@ -19,6 +19,7 @@ interface PreviewContainerProps {
 	documents: DocumentRow[];
 	folders: FolderRow[];
 	initialMessages: ChatMessage[];
+	documentsLoadError?: boolean;
 }
 
 type Tab = "documents" | "preview" | "chat";
@@ -32,6 +33,7 @@ export function PreviewContainer({
 	documents,
 	folders,
 	initialMessages,
+	documentsLoadError = false,
 }: PreviewContainerProps) {
 	const t = useT();
 	const [scope, setScope] = useState<ChatScope>(ALL_SCOPE);
@@ -107,6 +109,7 @@ export function PreviewContainer({
 				documents={documents}
 				folders={folders}
 				scope={effectiveScope}
+				loadError={documentsLoadError}
 				onSelectAll={handleSelectAll}
 				onSelectDocument={handleSelectDocument}
 				onSelectFolder={handleSelectFolder}
@@ -123,10 +126,12 @@ export function PreviewContainer({
 					documentId={effectiveScope.documentId}
 					name={selectedDoc?.name}
 					page={selectedPage}
+					status={selectedDoc?.status}
 				/>
 			</div>
 
 			<ChatZone
+				key={documents.length > 0 ? "has-docs" : "empty"}
 				scope={effectiveScope}
 				plan={plan}
 				usage={usage}

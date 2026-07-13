@@ -140,12 +140,16 @@ export async function removeDocument(id: string): Promise<{ error?: string }> {
 		.from("documents")
 		.select("storage_path")
 		.eq("id", id)
-		.single();
+		.maybeSingle();
 
-	if (fetchError || !doc) {
-		return {
-			error: fetchError?.message || "Not Found",
-		};
+	if (fetchError) {
+		return { error: fetchError.message };
+	}
+
+	// Already gone (e.g. a duplicate click that raced the first delete) — nothing to
+	// do. Treat as success so a second confirmation doesn't surface an error toast.
+	if (!doc) {
+		return {};
 	}
 
 	const { error: storageError } = await supabase.storage

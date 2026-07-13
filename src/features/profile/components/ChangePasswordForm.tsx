@@ -8,7 +8,7 @@ import { changePasswordSchema, type ChangePasswordInput } from "@/features/profi
 import { useT } from "@/shared/config/i18n";
 import { toast } from "@/shared/lib/toast";
 import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
+import { PasswordInput } from "@/shared/ui/password-input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/ui/form";
 
 export function ChangePasswordForm() {
@@ -42,7 +42,7 @@ export function ChangePasswordForm() {
 						<FormItem>
 							<FormLabel>{t("Profile.currentPasswordLabel")}</FormLabel>
 							<FormControl>
-								<Input type="password" autoComplete="current-password" {...field} />
+								<PasswordInput autoComplete="current-password" {...field} />
 							</FormControl>
 							<FormMessage />
 						</FormItem>
@@ -56,7 +56,7 @@ export function ChangePasswordForm() {
 						<FormItem>
 							<FormLabel>{t("Profile.newPasswordLabel")}</FormLabel>
 							<FormControl>
-								<Input type="password" autoComplete="new-password" {...field} />
+								<PasswordInput autoComplete="new-password" {...field} />
 							</FormControl>
 							<FormMessage />
 						</FormItem>

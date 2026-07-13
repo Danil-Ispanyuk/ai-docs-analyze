@@ -14,7 +14,12 @@ export default async function ProfilePage() {
 	const fullName = (user.user_metadata?.full_name as string | undefined) ?? null;
 
 	return (
-		<ProfileLayout isGuest={false} email={user.email ?? ""} plan={overview.plan}>
+		<ProfileLayout
+			isGuest={false}
+			email={user.email ?? ""}
+			fullName={fullName}
+			plan={overview.plan}
+		>
 			<ProfileContent overview={overview} email={user.email ?? ""} fullName={fullName} />
 		</ProfileLayout>
 	);

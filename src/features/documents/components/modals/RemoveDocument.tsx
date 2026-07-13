@@ -9,11 +9,12 @@ import {
 	DialogTrigger,
 } from "@/shared/ui/dialog";
 import { useT } from "@/shared/config/i18n";
-import { type ReactElement } from "react";
+import { useState, type ReactElement } from "react";
 
 interface RemoveDocumentModalProps {
 	documentTitle: string;
 	onSubmit: () => void;
+	pending?: boolean;
 	children: ReactElement;
 }
 
@@ -21,10 +22,20 @@ export function RemoveDocumentModal({
 	children,
 	documentTitle,
 	onSubmit,
+	pending = false,
 }: RemoveDocumentModalProps) {
 	const t = useT();
+	const [open, setOpen] = useState(false);
+
+	// Close on confirm so the button can't be clicked again — repeated clicks used
+	// to queue many delete calls (and a stale second call raised "Cannot coerce…").
+	const handleConfirm = () => {
+		onSubmit();
+		setOpen(false);
+	};
+
 	return (
-		<Dialog>
+		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger render={children} />
 			<DialogContent>
 				<DialogHeader>
@@ -36,7 +47,9 @@ export function RemoveDocumentModal({
 					})}
 				</DialogDescription>
 				<DialogFooter showCloseButton className="flex justify-between">
-					<Button onClick={onSubmit}>{t("Workspace.modal.confirm")}</Button>
+					<Button variant="destructive" onClick={handleConfirm} disabled={pending}>
+						{t("Workspace.modal.confirm")}
+					</Button>
 				</DialogFooter>
 			</DialogContent>
 		</Dialog>

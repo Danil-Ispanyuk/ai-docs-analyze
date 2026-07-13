@@ -10,7 +10,7 @@ import { DocumentStatusBadge } from "./DocumentStatusBadge";
 import { Button } from "@/shared/ui/button";
 import { DOCUMENT_STATUSES } from "@/shared/constants/general";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { DocumentIcon, CloseIcon, RetryIcon } from "@/shared/assets/icons";
+import { DocumentIcon, DeleteIcon, RetryIcon } from "@/shared/assets/icons";
 
 interface DocumentListItemProps {
 	document: DocumentRow;
@@ -83,16 +83,16 @@ export function DocumentListItem({
 					folders={folders}
 				/>
 
-				<RemoveDocumentModal onSubmit={onRemove} documentTitle={document.name}>
+				<RemoveDocumentModal onSubmit={onRemove} documentTitle={document.name} pending={isRemoving}>
 					<Button
 						type="button"
 						variant="ghost"
 						size="icon-sm"
 						aria-label={t("Workspace.remove")}
 						disabled={isRemoving}
-						className="shrink-0 text-foreground/40 opacity-0 transition group-hover:opacity-100 hover:text-destructive"
+						className="shrink-0 text-foreground/50 transition hover:text-destructive"
 					>
-						<HugeiconsIcon icon={CloseIcon} className="size-3.5" />
+						<HugeiconsIcon icon={DeleteIcon} className="size-4" />
 					</Button>
 				</RemoveDocumentModal>
 			</div>
