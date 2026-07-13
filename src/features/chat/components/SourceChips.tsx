@@ -72,12 +72,12 @@ export function SourceChips({
 									aria-label={t("Workspace.morePagesLabel")}
 									aria-expanded={isOpen}
 									onClick={() => setOpenDocumentId(isOpen ? null : group.documentId)}
-									className={cn(chipClass, "ml-1")}
+									className={cn(chipClass, "ms-1")}
 								>
 									{t("Workspace.morePages", { count: extraPages.length })}
 								</button>
 								{isOpen && (
-									<div className="absolute top-full left-0 z-10 mt-1 flex min-w-[7rem] flex-col gap-0.5 rounded-lg border border-border bg-background p-1 shadow-md">
+									<div className="absolute start-0 top-full z-10 mt-1 flex min-w-[7rem] flex-col gap-0.5 rounded-lg border border-border bg-background p-1 shadow-md">
 										{extraPages.map((page) => (
 											<button
 												key={String(page)}
@@ -86,7 +86,7 @@ export function SourceChips({
 													onSelect(group.documentId, page);
 													setOpenDocumentId(null);
 												}}
-												className="rounded-md px-2 py-1 text-left text-xs text-foreground/70 transition-colors hover:bg-muted"
+												className="rounded-md px-2 py-1 text-start text-xs text-foreground/70 transition-colors hover:bg-muted"
 											>
 												{pageLabel(page)}
 											</button>

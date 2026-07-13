@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useT } from "@/shared/config/i18n";
-import { Logo, TryItButton } from "@/shared/components";
+import { Logo, TryItButton, LocaleSwitcher } from "@/shared/components";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { BrandIcon, CitationIcon, GroundedIcon, PrivacyIcon } from "@/shared/assets/icons";
 
@@ -23,6 +23,7 @@ export function LandingContent() {
 			<header className="flex items-center justify-between px-6 py-5 sm:px-10">
 				<Logo />
 				<div className="flex items-center gap-4">
+					<LocaleSwitcher />
 					<Link
 						href="/sign-in"
 						className="text-sm font-medium text-foreground/70 transition-colors hover:text-foreground"
@@ -61,7 +62,7 @@ export function LandingContent() {
 					{features.map((feature) => (
 						<div
 							key={feature.title}
-							className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-background/70 p-6 text-center shadow-sm backdrop-blur transition-colors hover:border-primary/30 sm:items-start sm:text-left"
+							className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-background/70 p-6 text-center shadow-sm backdrop-blur transition-colors hover:border-primary/30 sm:items-start sm:text-start"
 						>
 							<span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
 								<HugeiconsIcon icon={feature.icon} className="size-5" />

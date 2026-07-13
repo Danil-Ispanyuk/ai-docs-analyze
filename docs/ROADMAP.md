@@ -205,4 +205,7 @@ so budgets can be generous; "no limit" is practically bounded by the token budge
   - Audit layout for directional assumptions — prefer logical CSS properties
     (`margin-inline`, `padding-inline`, `start/end`) over `left/right`, and mirror
     directional icons (back arrows, chevrons).
-- **Effort:** L · **Status:** idea
+- **Effort:** L · **Status:** done · **Decided:** Arabic (`ar`) as the RTL locale;
+  `dir` on `<html>` from `getDirection(locale)`; a header + landing **language switcher**
+  (cookie via a `setLocale` server action); layout audited to logical Tailwind utilities
+  (`ms/me/ps/pe/text-start/end`) with `rtl:-scale-x-100` on directional icons (send, chevron).

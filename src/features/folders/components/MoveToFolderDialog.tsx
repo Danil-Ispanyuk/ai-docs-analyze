@@ -89,10 +89,10 @@ export function MoveToFolderDialog({
 									option.id === currentFolderId && "bg-muted text-foreground",
 								)}
 							>
-								<HugeiconsIcon icon={FolderIcon} className="mr-2 size-4 text-foreground/50" />
+								<HugeiconsIcon icon={FolderIcon} className="me-2 size-4 text-foreground/50" />
 								{option.label}
 								{option.id === currentFolderId && (
-									<span className="ml-auto text-xs text-foreground/50">{t("Folders.current")}</span>
+									<span className="ms-auto text-xs text-foreground/50">{t("Folders.current")}</span>
 								)}
 							</Button>
 						</li>

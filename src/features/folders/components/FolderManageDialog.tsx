@@ -107,7 +107,7 @@ export function FolderManageDialog({ folderId, name }: FolderManageDialogProps) 
 						disabled={isPending}
 						className="text-destructive hover:text-destructive"
 					>
-						<HugeiconsIcon icon={DeleteIcon} className="mr-1.5 size-4" />
+						<HugeiconsIcon icon={DeleteIcon} className="me-1.5 size-4" />
 						{t("Folders.delete")}
 					</Button>
 					<div className="flex gap-2 sm:justify-end">

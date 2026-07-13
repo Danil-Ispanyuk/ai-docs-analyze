@@ -34,7 +34,10 @@ export function FolderGroup({ folder, isActive, count, onSelect, children }: Fol
 					onClick={() => setOpen((previous) => !previous)}
 					className="shrink-0 rounded-md p-0.5 text-foreground/40 outline-none hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50"
 				>
-					<HugeiconsIcon icon={open ? ChevronDownIcon : ChevronRightIcon} className="size-4" />
+					<HugeiconsIcon
+						icon={open ? ChevronDownIcon : ChevronRightIcon}
+						className="size-4 rtl:-scale-x-100"
+					/>
 				</button>
 				<div
 					role="button"
@@ -47,7 +50,7 @@ export function FolderGroup({ folder, isActive, count, onSelect, children }: Fol
 						}
 					}}
 					className={cn(
-						"flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-md text-left text-sm outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
+						"flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-md text-start text-sm outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
 						isActive ? "text-primary" : "text-foreground/80",
 					)}
 				>
@@ -57,7 +60,7 @@ export function FolderGroup({ folder, isActive, count, onSelect, children }: Fol
 				</div>
 				<FolderManageDialog folderId={folder.id} name={folder.name} />
 			</div>
-			{open && <ul className="space-y-1.5 pl-4">{children}</ul>}
+			{open && <ul className="space-y-1.5 ps-4">{children}</ul>}
 		</li>
 	);
 }

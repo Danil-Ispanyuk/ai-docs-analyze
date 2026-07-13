@@ -30,6 +30,9 @@
 	"General": {
 		"title": "AI Docs Analyze"
 	},
+	"Locale": {
+		"switchLanguage": "Switch language"
+	},
 	"Landing": {
 		"eyebrow": "HR & onboarding assistant",
 		"title": "Chat with your company's documents",

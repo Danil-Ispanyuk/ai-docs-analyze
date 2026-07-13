@@ -74,7 +74,7 @@ export function ForgotPasswordForm({ expired }: { expired?: boolean }) {
 				<Button type="submit" className="w-full" disabled={isPending}>
 					{isPending && (
 						<span
-							className="mr-2 size-4 animate-spin rounded-full border-2 border-current border-t-transparent"
+							className="me-2 size-4 animate-spin rounded-full border-2 border-current border-t-transparent"
 							aria-hidden
 						/>
 					)}

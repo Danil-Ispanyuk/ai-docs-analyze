@@ -4,6 +4,7 @@ import { useT } from "@/shared/config/i18n";
 import { PLAN_TYPES } from "@/shared/constants/general";
 import { Button } from "@/shared/ui/button";
 import { LogoutButton } from "./LogoutButton";
+import { LocaleSwitcher } from "./LocaleSwitcher";
 import { Logo } from "./Logo";
 
 type HeaderProps = {
@@ -19,6 +20,7 @@ export function Header({ isGuest, email, plan }: HeaderProps) {
 		<header className="flex items-center justify-between gap-4 border-b border-border bg-background/80 px-6 py-3 backdrop-blur">
 			<Logo isGuest={isGuest} />
 			<div className="flex items-center gap-3">
+				<LocaleSwitcher />
 				{isGuest ? (
 					<>
 						<Button variant="ghost" size="sm" render={<Link href="/sign-in" />}>

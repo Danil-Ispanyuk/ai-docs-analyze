@@ -293,7 +293,7 @@ export function UploadZone({
 								}
 							}}
 							className={cn(
-								"flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl border px-3 py-2 text-left text-sm transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
+								"flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl border px-3 py-2 text-start text-sm transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
 								isAllActive
 									? "border-primary bg-primary/5 text-primary"
 									: "border-border text-foreground/70 hover:bg-muted/50",

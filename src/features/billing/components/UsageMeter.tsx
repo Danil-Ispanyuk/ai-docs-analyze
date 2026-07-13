@@ -25,7 +25,7 @@ export function UsageMeter({ label, valueLabel, percent, hint, className }: Usag
 					style={{ width: `${clamped}%` }}
 				/>
 			</div>
-			{hint && <p className="text-right text-[0.7rem] text-foreground/45">{hint}</p>}
+			{hint && <p className="text-end text-[0.7rem] text-foreground/45">{hint}</p>}
 		</div>
 	);
 }

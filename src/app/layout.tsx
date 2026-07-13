@@ -5,6 +5,7 @@ import { getLocale } from "next-intl/server";
 import "./globals.css";
 import { cn } from "@/shared/lib/utils";
 import { Toaster } from "@/shared/ui/sonner";
+import { getDirection, type Locale } from "@/shared/config/i18n/config";
 
 const figtree = Figtree({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -26,9 +27,14 @@ export default async function RootLayout({
 	children: React.ReactNode;
 }>) {
 	const locale = await getLocale();
+	const direction = getDirection(locale as Locale);
 
 	return (
-		<html lang={locale} className={cn("h-full", "antialiased", "font-sans", figtree.variable)}>
+		<html
+			lang={locale}
+			dir={direction}
+			className={cn("h-full", "antialiased", "font-sans", figtree.variable)}
+		>
 			<body className="flex min-h-full flex-col">
 				<NextIntlClientProvider>{children}</NextIntlClientProvider>
 				<Toaster />

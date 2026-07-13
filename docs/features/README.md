@@ -27,6 +27,7 @@ Docs are written **after** the feature is implemented, so they describe reality.
 | RM-7 | Chat history persistence (per scope)      | [rm-7-chat-history.md](./rm-7-chat-history.md)     | done   |
 | RM-8 | Guest header sign-in for existing users   | [rm-8-guest-signin.md](./rm-8-guest-signin.md)     | done   |
 | RM-7 | Folders to group documents and scope chat | [rm-7-folders.md](./rm-7-folders.md)               | done   |
+| RM-9 | RTL support (Arabic)                      | [rm-9-rtl.md](./rm-9-rtl.md)                       | done   |
 
 Delivery order is **by dependency**: RM-1 → RM-5 → RM-2 (uses RM-5 toasts) →
 RM-3 → RM-4 (uses RM-3 plans/limits).

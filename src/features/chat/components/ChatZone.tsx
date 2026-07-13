@@ -236,7 +236,7 @@ export function ChatZone({
 				}}
 				className="border-t border-border p-3"
 			>
-				<div className="flex items-center gap-2 rounded-2xl border border-border bg-input/30 py-1 pr-1 pl-3 focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50">
+				<div className="flex items-center gap-2 rounded-2xl border border-border bg-input/30 py-1 ps-3 pe-1 focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50">
 					<input
 						ref={inputRef}
 						value={input}
@@ -251,7 +251,7 @@ export function ChatZone({
 						disabled={isBusy || !input.trim()}
 						aria-label={t("Workspace.send")}
 					>
-						<HugeiconsIcon icon={SendIcon} className="size-4" />
+						<HugeiconsIcon icon={SendIcon} className="size-4 rtl:-scale-x-100" />
 					</Button>
 				</div>
 			</form>
