@@ -5,20 +5,17 @@
 --
 -- Guests sign in anonymously (is_anonymous = true) and never come back. This job
 -- deletes their accounts once they're older than the TTL; the auth.users delete
--- FK-cascades to profiles/documents/chunks, and we clear their storage rows too.
+-- FK-cascades to profiles/documents/chunks.
 --
--- NOTE on storage bytes: deleting storage.objects rows removes the file metadata
--- (so the app stays consistent), but the underlying object bytes may linger in
--- the storage backend — the same known trade-off as TD-11 (orphan files). Guest
--- files are tiny (≤ 1 MB, 1 per guest) and short-lived, so this is negligible.
--- For byte-perfect cleanup, swap this for a scheduled Edge Function that deletes
--- via the Storage API before removing the user.
+-- NOTE on storage bytes: Supabase does not allow direct deletes from
+-- storage.objects. Delete guest files via the Storage API from a scheduled Edge
+-- Function before or after this SQL cleanup.
 
 create extension if not exists pg_cron;
 
--- Deletes anonymous users older than the TTL and their storage rows.
+-- Deletes anonymous users older than the TTL.
 -- SECURITY DEFINER (owned by the privileged postgres role) so it may touch the
--- auth and storage schemas; scheduled below via pg_cron.
+-- auth schema; scheduled below via pg_cron.
 create or replace function public.cleanup_anonymous_users()
 returns void
 language plpgsql
@@ -28,16 +25,6 @@ as $$
 declare
   stale_ttl constant interval := interval '24 hours';
 begin
-  -- Storage metadata first (no FK cascade from auth.users to storage.objects).
-  delete from storage.objects
-  where bucket_id = 'documents'
-    and (storage.foldername(name))[1] in (
-      select id::text
-      from auth.users
-      where is_anonymous
-        and created_at < now() - stale_ttl
-    );
-
   -- Deleting the auth user cascades to profiles/documents/chunks.
   delete from auth.users
   where is_anonymous

@@ -6,6 +6,7 @@ import { getTranslations } from "next-intl/server";
 import { createClient } from "@/shared/config/supabase/server";
 import { getCurrentUser } from "@/features/auth/service";
 import { stripe } from "@/features/billing/stripe";
+import { DOCUMENTS_BUCKET } from "@/features/documents/service";
 import {
 	changePasswordSchema,
 	deleteAccountSchema,
@@ -117,8 +118,28 @@ export async function deleteAccount(values: DeleteAccountInput): Promise<Profile
 		}
 	}
 
+	const { data: documents, error: documentsError } = await supabase
+		.from("documents")
+		.select("storage_path")
+		.eq("user_id", user.id);
+	if (documentsError) {
+		return { error: documentsError.message };
+	}
+
+	const storagePaths = (documents ?? [])
+		.map((document) => document.storage_path)
+		.filter((path): path is string => Boolean(path));
+	if (storagePaths.length > 0) {
+		const { error: storageError } = await supabase.storage
+			.from(DOCUMENTS_BUCKET)
+			.remove(storagePaths);
+		if (storageError) {
+			return { error: storageError.message };
+		}
+	}
+
 	// Privileged, self-scoped deletion (SECURITY DEFINER, acts on auth.uid()):
-	// cascades every user table and clears their storage rows.
+	// cascades every user table after file bytes have been removed via Storage API.
 	const { error: deleteError } = await supabase.rpc("delete_current_user");
 	if (deleteError) {
 		return { error: deleteError.message };
