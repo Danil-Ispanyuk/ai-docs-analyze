@@ -72,6 +72,22 @@ model ChatRateEvent {
   @@map("chat_rate_events")
 }
 
+// Optional grouping of a user's documents (RM-7). Selecting a folder scopes chat
+// to just its documents. FK to auth.users + RLS live in prisma/sql/folderSetup.sql
+// (Prisma can't model the auth schema).
+model Folder {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  name      String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  documents    Document[]
+  chatMessages ChatMessage[]
+
+  @@index([userId])
+  @@map("folders")
+}
+
 model Document {
   id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId      String   @map("user_id") @db.Uuid
@@ -83,12 +99,17 @@ model Document {
   size        Int      @default(0)
   // pending | processing | ready | error
   status      String   @default("pending")
+  // Optional folder (RM-7). SetNull so deleting a folder unfiles its documents
+  // rather than deleting them.
+  folderId    String?  @map("folder_id") @db.Uuid
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
+  folder       Folder?  @relation(fields: [folderId], references: [id], onDelete: SetNull)
   chunks       Chunk[]
   chatMessages ChatMessage[]
 
   @@index([userId])
+  @@index([folderId])
   @@map("documents")
 }
 
@@ -121,13 +142,18 @@ model Chunk {
 model ChatMessage {
   id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId     String   @map("user_id") @db.Uuid
+  // Thread scope key, orthogonal (RM-7): both NULL = the "all documents" thread;
+  // document_id set = that document's thread; folder_id set = that folder's thread.
   documentId String?  @map("document_id") @db.Uuid
+  folderId   String?  @map("folder_id") @db.Uuid
   role       String
   parts      Json     @db.JsonB
   createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   document Document? @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  folder   Folder?   @relation(fields: [folderId], references: [id], onDelete: Cascade)
 
   @@index([userId, documentId, createdAt])
+  @@index([userId, folderId, createdAt])
   @@map("chat_messages")
 }

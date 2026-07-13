@@ -25,6 +25,12 @@ vi.mock("@/features/documents/actions", () => ({
 	ingestDocument: actions.ingestDocument,
 	removeDocument: actions.removeDocument,
 }));
+vi.mock("@/features/folders/actions", () => ({
+	createFolder: vi.fn(),
+	renameFolder: vi.fn(),
+	deleteFolder: vi.fn(),
+	moveDocumentToFolder: vi.fn(),
+}));
 
 import { UploadZone } from "./UploadZone";
 
@@ -35,23 +41,28 @@ function makeDoc(overrides: Partial<DocumentRow> = {}): DocumentRow {
 		status: "ready",
 		created_at: "2026-01-01",
 		size: 1000,
+		folder_id: null,
 		...overrides,
 	};
 }
 
 function render(props: Partial<Parameters<typeof UploadZone>[0]> = {}) {
-	const handleSelectDocument = props.handleSelectDocument ?? vi.fn();
+	const onSelectDocument = props.onSelectDocument ?? vi.fn();
+	const onSelectAll = props.onSelectAll ?? vi.fn();
 	renderWithIntl(
 		<UploadZone
 			userId="user-1"
 			plan="pro"
 			documents={[]}
-			selectedDocId={null}
-			handleSelectDocument={handleSelectDocument}
+			folders={[]}
+			scope={{ documentId: null, folderId: null }}
+			onSelectAll={onSelectAll}
+			onSelectDocument={onSelectDocument}
+			onSelectFolder={vi.fn()}
 			{...props}
 		/>,
 	);
-	return { handleSelectDocument };
+	return { onSelectDocument, onSelectAll };
 }
 
 const fileInput = () => document.querySelector('input[type="file"]') as HTMLInputElement;
@@ -113,13 +124,15 @@ describe("UploadZone", () => {
 	});
 
 	it("selects a document when its row is clicked", async () => {
-		const { handleSelectDocument } = render({ documents: [makeDoc({ name: "Doc One.pdf" })] });
+		const { onSelectDocument, onSelectAll } = render({
+			documents: [makeDoc({ name: "Doc One.pdf" })],
+		});
 
 		await userEvent.click(screen.getByText("Doc One.pdf"));
-		expect(handleSelectDocument).toHaveBeenCalledWith("doc-1");
+		expect(onSelectDocument).toHaveBeenCalledWith("doc-1");
 
 		await userEvent.click(screen.getByText("All documents"));
-		expect(handleSelectDocument).toHaveBeenCalledWith(null);
+		expect(onSelectAll).toHaveBeenCalled();
 	});
 
 	it("offers a retry that re-ingests a failed document", async () => {

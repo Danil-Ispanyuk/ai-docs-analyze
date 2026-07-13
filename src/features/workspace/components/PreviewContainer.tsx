@@ -7,8 +7,9 @@ import { UploadZone } from "@/features/documents/components/UploadZone";
 import { cn } from "@/shared/lib/utils";
 import { useT } from "@/shared/config/i18n";
 import type { DocumentRow } from "@/features/documents/service";
+import type { FolderRow } from "@/features/folders/service";
 import type { PlanUsage } from "@/features/billing/service";
-import type { ChatMessage } from "@/features/chat/types";
+import type { ChatMessage, ChatScope } from "@/features/chat/types";
 import { Button } from "@/shared/ui/button";
 
 interface PreviewContainerProps {
@@ -16,33 +17,60 @@ interface PreviewContainerProps {
 	plan: string;
 	usage: PlanUsage;
 	documents: DocumentRow[];
+	folders: FolderRow[];
 	initialMessages: ChatMessage[];
 }
 
 type Tab = "documents" | "preview" | "chat";
+
+const ALL_SCOPE: ChatScope = { documentId: null, folderId: null };
 
 export function PreviewContainer({
 	userId,
 	plan,
 	usage,
 	documents,
+	folders,
 	initialMessages,
 }: PreviewContainerProps) {
 	const t = useT();
-	const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
+	const [scope, setScope] = useState<ChatScope>(ALL_SCOPE);
 	const [selectedPage, setSelectedPage] = useState<number | null>(null);
 	const [tab, setTab] = useState<Tab>("documents");
-	const selectedDoc = documents.find((doc) => doc.id === selectedDocId) ?? null;
-	const scopeName = selectedDoc?.name ?? t("Workspace.allDocuments");
 
-	const handleSelectDocument = (id: string | null) => {
-		setSelectedDocId(id);
+	// Derive the effective scope during render so a scope whose target disappeared
+	// (document removed, folder deleted) transparently falls back to "all documents"
+	// — no setState-in-effect needed. Any user action replaces `scope` with a fresh
+	// valid value, so the stale value never resurfaces.
+	const documentExists =
+		!scope.documentId || documents.some((document) => document.id === scope.documentId);
+	const folderExists = !scope.folderId || folders.some((folder) => folder.id === scope.folderId);
+	const effectiveScope: ChatScope = documentExists && folderExists ? scope : ALL_SCOPE;
+
+	const selectedDoc =
+		documents.find((document) => document.id === effectiveScope.documentId) ?? null;
+	const selectedFolder = folders.find((folder) => folder.id === effectiveScope.folderId) ?? null;
+	const scopeName = selectedDoc?.name ?? selectedFolder?.name ?? t("Workspace.allDocuments");
+
+	const handleSelectAll = () => {
+		setScope(ALL_SCOPE);
 		setSelectedPage(null);
-		if (id) setTab("preview");
+	};
+
+	const handleSelectDocument = (id: string) => {
+		setScope({ documentId: id, folderId: null });
+		setSelectedPage(null);
+		setTab("preview");
+	};
+
+	const handleSelectFolder = (id: string) => {
+		setScope({ documentId: null, folderId: id });
+		setSelectedPage(null);
+		setTab("chat");
 	};
 
 	const handleSourceClick = (documentId: string, page: number | null) => {
-		setSelectedDocId(documentId);
+		setScope({ documentId, folderId: null });
 		setSelectedPage(page);
 		setTab("preview");
 	};
@@ -77,8 +105,11 @@ export function PreviewContainer({
 				userId={userId}
 				plan={plan}
 				documents={documents}
-				selectedDocId={selectedDocId}
-				handleSelectDocument={handleSelectDocument}
+				folders={folders}
+				scope={effectiveScope}
+				onSelectAll={handleSelectAll}
+				onSelectDocument={handleSelectDocument}
+				onSelectFolder={handleSelectFolder}
 				className={cn(tab === "documents" ? "flex" : "hidden", "md:flex")}
 			/>
 
@@ -88,11 +119,15 @@ export function PreviewContainer({
 					"min-h-0 overflow-hidden rounded-2xl border border-border bg-muted/30 shadow-sm md:block",
 				)}
 			>
-				<FilePreview documentId={selectedDocId} name={selectedDoc?.name} page={selectedPage} />
+				<FilePreview
+					documentId={effectiveScope.documentId}
+					name={selectedDoc?.name}
+					page={selectedPage}
+				/>
 			</div>
 
 			<ChatZone
-				documentId={selectedDocId}
+				scope={effectiveScope}
 				plan={plan}
 				usage={usage}
 				scopeName={scopeName}

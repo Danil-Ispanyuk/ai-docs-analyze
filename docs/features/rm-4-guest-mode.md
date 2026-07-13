@@ -104,25 +104,25 @@ re-added later if abuse appears.
 
 ### New files
 
-| File | Role |
-|---|---|
-| [../../src/containers/Landing/LandingContent.tsx](../../src/containers/Landing/LandingContent.tsx) | Public landing at `/`. |
-| [../../src/components/general/TryItButton.tsx](../../src/components/general/TryItButton.tsx) | Guest "Try it" CTA → `signInAnonymously`. |
-| [../../src/containers/SaveAccount/SaveAccountForm.tsx](../../src/containers/SaveAccount/SaveAccountForm.tsx) | Guest → account conversion form. |
-| [../../src/app/(auth)/save-account/page.tsx](../../src/app/(auth)/save-account/page.tsx) | `/save-account` route (guest-only, redirects others). |
-| [../../prisma/sql/guestCleanup.sql](../../prisma/sql/guestCleanup.sql) | `pg_cron` TTL cleanup of anonymous users + storage rows. |
+| File                                                                                                         | Role                                                     |
+| ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------- |
+| [../../src/containers/Landing/LandingContent.tsx](../../src/containers/Landing/LandingContent.tsx)           | Public landing at `/`.                                   |
+| [../../src/components/general/TryItButton.tsx](../../src/components/general/TryItButton.tsx)                 | Guest "Try it" CTA → `signInAnonymously`.                |
+| [../../src/containers/SaveAccount/SaveAccountForm.tsx](../../src/containers/SaveAccount/SaveAccountForm.tsx) | Guest → account conversion form.                         |
+| [../../src/app/(auth)/save-account/page.tsx](<../../src/app/(auth)/save-account/page.tsx>)                   | `/save-account` route (guest-only, redirects others).    |
+| [../../prisma/sql/guestCleanup.sql](../../prisma/sql/guestCleanup.sql)                                       | `pg_cron` TTL cleanup of anonymous users + storage rows. |
 
 ### Changed files
 
-| File | Change |
-|---|---|
-| [../../src/actions/auth.ts](../../src/actions/auth.ts) | `signInAnonymously` + `convertGuestAccount` actions; `signOut` now redirects to `/`. |
-| [../../src/lib/validators.ts](../../src/lib/validators.ts) | `convertAccountSchema` + type. |
-| [../../src/lib/supabase/middleware.ts](../../src/lib/supabase/middleware.ts) | `/` public for logged-out visitors. |
-| [../../src/containers/Workspace/WorkspaceContent.tsx](../../src/containers/Workspace/WorkspaceContent.tsx) | Render landing instead of redirect when no user. |
-| [../../src/components/general/Header.tsx](../../src/components/general/Header.tsx) | "Guest session" label; "Save account" CTA for guests / "Upgrade" for free. |
-| [../../src/containers/index.ts](../../src/containers/index.ts) · [../../src/components/general/index.ts](../../src/components/general/index.ts) | Barrels for the new components. |
-| [../../src/i18n/messages/en.json](../../src/i18n/messages/en.json) | `Landing.*`, `Workspace.guestSession`, `Auth.saveAccount*`. |
+| File                                                                                                                                            | Change                                                                               |
+| ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| [../../src/actions/auth.ts](../../src/actions/auth.ts)                                                                                          | `signInAnonymously` + `convertGuestAccount` actions; `signOut` now redirects to `/`. |
+| [../../src/lib/validators.ts](../../src/lib/validators.ts)                                                                                      | `convertAccountSchema` + type.                                                       |
+| [../../src/lib/supabase/middleware.ts](../../src/lib/supabase/middleware.ts)                                                                    | `/` public for logged-out visitors.                                                  |
+| [../../src/containers/Workspace/WorkspaceContent.tsx](../../src/containers/Workspace/WorkspaceContent.tsx)                                      | Render landing instead of redirect when no user.                                     |
+| [../../src/components/general/Header.tsx](../../src/components/general/Header.tsx)                                                              | "Guest session" label; "Save account" CTA for guests / "Upgrade" for free.           |
+| [../../src/containers/index.ts](../../src/containers/index.ts) · [../../src/components/general/index.ts](../../src/components/general/index.ts) | Barrels for the new components.                                                      |
+| [../../src/i18n/messages/en.json](../../src/i18n/messages/en.json)                                                                              | `Landing.*`, `Workspace.guestSession`, `Auth.saveAccount*`.                          |
 
 ### Reused unchanged (RM-3)
 

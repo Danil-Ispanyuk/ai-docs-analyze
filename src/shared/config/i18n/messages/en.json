@@ -101,6 +101,8 @@
 		"chatWelcomeBody": "Ask about your company policies, handbook, and onboarding docs. I answer only from the documents you've uploaded and cite the source for every answer — I can't help with topics outside them.",
 		"chatScopedAll": "Searching across all your uploaded documents — ask anything.",
 		"chatScopedDoc": "Searching in \"{name}\" — ask about this document.",
+		"chatScopedFolder": "Searching in the \"{name}\" folder — ask about its documents.",
+		"remove": "Remove",
 		"chatPlaceholder": "Ask about your documents…",
 		"sourcePage": "p.{page}",
 		"morePages": "+{count}",
@@ -118,6 +120,27 @@
 				"removeDescription": "Are you sure that you want to remove \"{document}\"?"
 			}
 		}
+	},
+	"Folders": {
+		"newFolder": "New folder",
+		"namePlaceholder": "Folder name",
+		"create": "Create",
+		"createSuccess": "Folder created.",
+		"cancel": "Cancel",
+		"save": "Save",
+		"manage": "Folder options",
+		"manageTitle": "Rename or delete folder",
+		"renameSuccess": "Folder renamed.",
+		"delete": "Delete folder",
+		"deleteSuccess": "Folder deleted — its documents were kept.",
+		"moveToFolder": "Move to folder",
+		"moveSuccess": "Document moved.",
+		"noFolder": "No folder",
+		"current": "Current",
+		"collapse": "Collapse folder",
+		"expand": "Expand folder",
+		"emptyFolder": "No documents in this folder yet.",
+		"unfiled": "Unfiled"
 	},
 	"Profile": {
 		"title": "Profile",

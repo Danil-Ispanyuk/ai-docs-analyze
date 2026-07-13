@@ -80,7 +80,7 @@ the work, and **only on the cited page**:
 - **`onRenderTextLayerSuccess`** — fires after the text layer (with our `<mark>` elements) is in
   the DOM. It reads a `pendingHighlightScrollRef` flag (armed whenever `page`/`highlights`
   change), finds the **first `<mark>` on the cited page**, and `scrollIntoView({ block:
-  "center" })`. If no `<mark>` matched, it falls back to scrolling the page to the top. Gating on
+"center" })`. If no `<mark>` matched, it falls back to scrolling the page to the top. Gating on
   the ref stops unrelated re-renders (e.g. a resize) from yanking the scroll position back.
 
 Because both props are `undefined` for non-cited pages and flip to `undefined` on the previously
@@ -103,14 +103,14 @@ marks — so the highlight is automatically cleared when a new citation is click
 
 ### Changed files
 
-| File | Role in this feature |
-|---|---|
-| [../../src/lib/chat.ts](../../src/lib/chat.ts) | `Source` type — added `snippets: string[]`. |
-| [../../src/app/api/chat/route.ts](../../src/app/api/chat/route.ts) | Group chunks by `(document_id, page)` into a `Map`, accumulate `snippets`. |
-| [../../src/components/workspace/ChatZone.tsx](../../src/components/workspace/ChatZone.tsx) | `onSourceClick(documentId, page, snippets)` — passes `s.snippets` from the citation chip. |
-| [../../src/containers/Workspace/Container.tsx](../../src/containers/Workspace/Container.tsx) | `selectedHighlights` state; set in `handleSourceClick`, cleared in `handleSelectDocument`; passed to `FilePreview`. |
-| [../../src/components/workspace/FilePreview.tsx](../../src/components/workspace/FilePreview.tsx) | Accepts `highlights?: string[]`, forwards to `PdfViewer`. |
-| [../../src/components/workspace/PdfViewer.tsx](../../src/components/workspace/PdfViewer.tsx) | Highlight rendering: `customTextRenderer` + `onRenderTextLayerSuccess`, mark-scroll, helpers. |
+| File                                                                                             | Role in this feature                                                                                                |
+| ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| [../../src/lib/chat.ts](../../src/lib/chat.ts)                                                   | `Source` type — added `snippets: string[]`.                                                                         |
+| [../../src/app/api/chat/route.ts](../../src/app/api/chat/route.ts)                               | Group chunks by `(document_id, page)` into a `Map`, accumulate `snippets`.                                          |
+| [../../src/components/workspace/ChatZone.tsx](../../src/components/workspace/ChatZone.tsx)       | `onSourceClick(documentId, page, snippets)` — passes `s.snippets` from the citation chip.                           |
+| [../../src/containers/Workspace/Container.tsx](../../src/containers/Workspace/Container.tsx)     | `selectedHighlights` state; set in `handleSourceClick`, cleared in `handleSelectDocument`; passed to `FilePreview`. |
+| [../../src/components/workspace/FilePreview.tsx](../../src/components/workspace/FilePreview.tsx) | Accepts `highlights?: string[]`, forwards to `PdfViewer`.                                                           |
+| [../../src/components/workspace/PdfViewer.tsx](../../src/components/workspace/PdfViewer.tsx)     | Highlight rendering: `customTextRenderer` + `onRenderTextLayerSuccess`, mark-scroll, helpers.                       |
 
 ### Types
 

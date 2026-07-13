@@ -55,21 +55,21 @@ remains the source of truth; the toast just announces the transition.
 
 ### New files
 
-| File | Role |
-|---|---|
+| File                                                           | Role                                                    |
+| -------------------------------------------------------------- | ------------------------------------------------------- |
 | [../../src/elements/sonner.tsx](../../src/elements/sonner.tsx) | `<Toaster>` host (theme=system, top-right, richColors). |
-| [../../src/lib/toast.ts](../../src/lib/toast.ts) | `toast.success` / `toast.error` wrapper over sonner. |
+| [../../src/lib/toast.ts](../../src/lib/toast.ts)               | `toast.success` / `toast.error` wrapper over sonner.    |
 
 ### Changed files
 
-| File | Change |
-|---|---|
-| [../../src/app/layout.tsx](../../src/app/layout.tsx) | Mounts `<Toaster />`. |
-| [../../src/components/workspace/UploadZone.tsx](../../src/components/workspace/UploadZone.tsx) | Removed local `error` state; all upload/remove feedback via toasts (+ success). |
-| [../../src/components/workspace/ChatZone.tsx](../../src/components/workspace/ChatZone.tsx) | `useChat` `onError` → toast. |
-| [../../src/containers/ForgotPassword/ForgotPasswordForm.tsx](../../src/containers/ForgotPassword/ForgotPasswordForm.tsx) | "Reset link sent" → toast + reset (panel removed). |
-| [../../src/components/general/UpgradeButton.tsx](../../src/components/general/UpgradeButton.tsx) | Checkout errors → toast. |
-| [../../src/i18n/messages/en.json](../../src/i18n/messages/en.json) | `Workspace.uploadSuccess/uploadError/removeSuccess/removeError/chatError`. |
+| File                                                                                                                     | Change                                                                          |
+| ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
+| [../../src/app/layout.tsx](../../src/app/layout.tsx)                                                                     | Mounts `<Toaster />`.                                                           |
+| [../../src/components/workspace/UploadZone.tsx](../../src/components/workspace/UploadZone.tsx)                           | Removed local `error` state; all upload/remove feedback via toasts (+ success). |
+| [../../src/components/workspace/ChatZone.tsx](../../src/components/workspace/ChatZone.tsx)                               | `useChat` `onError` → toast.                                                    |
+| [../../src/containers/ForgotPassword/ForgotPasswordForm.tsx](../../src/containers/ForgotPassword/ForgotPasswordForm.tsx) | "Reset link sent" → toast + reset (panel removed).                              |
+| [../../src/components/general/UpgradeButton.tsx](../../src/components/general/UpgradeButton.tsx)                         | Checkout errors → toast.                                                        |
+| [../../src/i18n/messages/en.json](../../src/i18n/messages/en.json)                                                       | `Workspace.uploadSuccess/uploadError/removeSuccess/removeError/chatError`.      |
 
 ### Decisions & limitations
 

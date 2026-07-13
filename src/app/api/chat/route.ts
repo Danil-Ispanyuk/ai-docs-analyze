@@ -44,10 +44,15 @@ function getDocumentName(documents: FallbackChunk["documents"]) {
 	return documents?.name ?? "Document";
 }
 
+// targetIds: null = every document; an array = the exact scope (a single document
+// or a folder's documents). An empty array is an empty scope (e.g. an empty folder)
+// and retrieves nothing.
 async function getFallbackChunks(
 	supabase: Awaited<ReturnType<typeof createClient>>,
-	documentIds: string[] | undefined,
+	targetIds: string[] | null,
 ): Promise<Matched[]> {
+	if (targetIds && targetIds.length === 0) return [];
+
 	let query = supabase
 		.from("chunks")
 		.select("document_id, content, page, documents(name)")
@@ -55,8 +60,8 @@ async function getFallbackChunks(
 		.order("chunk_index", { ascending: true })
 		.limit(MATCH_COUNT);
 
-	if (documentIds?.length) {
-		query = query.in("document_id", documentIds);
+	if (targetIds) {
+		query = query.in("document_id", targetIds);
 	}
 
 	const { data, error } = await query;
@@ -71,47 +76,55 @@ async function getFallbackChunks(
 	}));
 }
 
-// Balanced retrieval: when asking over "all documents", give each document its own
-// quota so one document's chunks can't crowd the others out of the global top-k. The
-// similarity threshold still drops documents irrelevant to a specific question, so
-// this only broadens answers that genuinely span multiple documents.
+// Balanced retrieval: when a scope spans multiple documents (all documents, or a
+// folder), give each document its own quota so one document's chunks can't crowd the
+// others out of the global top-k. The similarity threshold still drops documents
+// irrelevant to a specific question, so this only broadens answers that genuinely
+// span multiple documents.
+//
+// targetIds: null = every ready document; an array = the exact scope (a single
+// document or a folder's documents). An empty array is an empty scope and retrieves
+// nothing.
 async function retrieveChunks(
 	supabase: Awaited<ReturnType<typeof createClient>>,
 	queryEmbedding: number[],
-	documentIds: string[] | undefined,
+	targetIds: string[] | null,
 ): Promise<Matched[]> {
-	if (!documentIds?.length) {
+	let ids = targetIds;
+	if (ids === null) {
 		const { data: docs } = await supabase
 			.from("documents")
 			.select("id")
 			.eq("status", DOCUMENT_STATUSES.READY);
-		const readyIds = (docs ?? []).map((doc) => doc.id as string);
+		ids = (docs ?? []).map((doc) => doc.id as string);
+	}
 
-		if (readyIds.length > 1) {
-			const perDocument = Math.max(2, Math.floor(MATCH_COUNT / readyIds.length));
-			const results = await Promise.all(
-				readyIds.map((documentId) =>
-					supabase.rpc("match_chunks", {
-						query_embedding: queryEmbedding,
-						match_count: perDocument,
-						match_threshold: MATCH_THRESHOLD,
-						document_ids: [documentId],
-					}),
-				),
-			);
-			const failed = results.find((result) => result.error);
-			if (failed?.error) throw new Error(failed.error.message);
-			return results
-				.flatMap((result) => (result.data as Matched[] | null) ?? [])
-				.sort((first, second) => second.similarity - first.similarity);
-		}
+	if (ids.length === 0) return [];
+
+	if (ids.length > 1) {
+		const perDocument = Math.max(2, Math.floor(MATCH_COUNT / ids.length));
+		const results = await Promise.all(
+			ids.map((documentId) =>
+				supabase.rpc("match_chunks", {
+					query_embedding: queryEmbedding,
+					match_count: perDocument,
+					match_threshold: MATCH_THRESHOLD,
+					document_ids: [documentId],
+				}),
+			),
+		);
+		const failed = results.find((result) => result.error);
+		if (failed?.error) throw new Error(failed.error.message);
+		return results
+			.flatMap((result) => (result.data as Matched[] | null) ?? [])
+			.sort((first, second) => second.similarity - first.similarity);
 	}
 
 	const { data, error } = await supabase.rpc("match_chunks", {
 		query_embedding: queryEmbedding,
 		match_count: MATCH_COUNT,
 		match_threshold: MATCH_THRESHOLD,
-		document_ids: documentIds?.length ? documentIds : null,
+		document_ids: ids,
 	});
 	if (error) throw new Error(error.message);
 	return (data as Matched[]) ?? [];
@@ -187,8 +200,11 @@ export async function POST(req: Request) {
 		return new Response("Token budget reached for your plan.", { status: 429 });
 	}
 
-	const { messages, documentIds }: { messages: ChatMessage[]; documentIds?: string[] } =
-		await req.json();
+	const {
+		messages,
+		documentId,
+		folderId,
+	}: { messages: ChatMessage[]; documentId?: string; folderId?: string } = await req.json();
 
 	const lastMessage = messages[messages.length - 1];
 	const question =
@@ -198,13 +214,32 @@ export async function POST(req: Request) {
 			.trim() ?? "";
 	if (!question) return new Response("Question is required.", { status: 400 });
 
-	// Thread scope: a single selected document, or null for the "all documents" thread.
-	const scopeDocumentId = documentIds?.length === 1 ? documentIds[0] : null;
+	// Resolve the retrieval scope (RM-7): a folder → its ready documents; a single
+	// document → itself; neither → all documents (targetIds = null).
+	let targetIds: string[] | null;
+	if (folderId) {
+		const { data: folderDocs } = await supabase
+			.from("documents")
+			.select("id")
+			.eq("folder_id", folderId)
+			.eq("status", DOCUMENT_STATUSES.READY);
+		targetIds = (folderDocs ?? []).map((doc) => doc.id as string);
+	} else if (documentId) {
+		targetIds = [documentId];
+	} else {
+		targetIds = null;
+	}
+
+	// Thread persistence key, orthogonal: folder thread, single-document thread, or
+	// the "all documents" thread (both null).
+	const scopeDocumentId = folderId ? null : (documentId ?? null);
+	const scopeFolderId = folderId ?? null;
 
 	// Persist the incoming user message (only the new one — history is already stored).
 	await supabase.from("chat_messages").insert({
 		user_id: user.id,
 		document_id: scopeDocumentId,
+		folder_id: scopeFolderId,
 		role: "user",
 		parts: lastMessage.parts,
 	});
@@ -215,7 +250,7 @@ export async function POST(req: Request) {
 
 	let chunks: Matched[];
 	try {
-		chunks = await retrieveChunks(supabase, queryEmbedding, documentIds);
+		chunks = await retrieveChunks(supabase, queryEmbedding, targetIds);
 	} catch (searchError) {
 		return new Response(searchError instanceof Error ? searchError.message : "Search failed", {
 			status: 500,
@@ -224,7 +259,7 @@ export async function POST(req: Request) {
 
 	if (!chunks.length) {
 		try {
-			chunks = await getFallbackChunks(supabase, documentIds);
+			chunks = await getFallbackChunks(supabase, targetIds);
 		} catch (error) {
 			return new Response(error instanceof Error ? error.message : "Fallback search failed", {
 				status: 500,
@@ -312,6 +347,7 @@ export async function POST(req: Request) {
 					await supabase.from("chat_messages").insert({
 						user_id: user.id,
 						document_id: scopeDocumentId,
+						folder_id: scopeFolderId,
 						role: "assistant",
 						parts: [
 							{ type: "text", text },

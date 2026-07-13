@@ -98,18 +98,18 @@ the sign-in/up forms:
 
 ### New / changed files
 
-| File | Role |
-|---|---|
-| [../../src/actions/auth.ts](../../src/actions/auth.ts) | `requestPasswordReset`, `resetPassword` server actions (+ existing `signIn`/`signUp`/`signOut`). |
-| [../../src/lib/validators.ts](../../src/lib/validators.ts) | `forgotPasswordSchema`, `resetPasswordSchema` (= `signUpSchema.pick({ password })`) + inferred types. |
-| [../../src/lib/supabase/middleware.ts](../../src/lib/supabase/middleware.ts) | `/forgot-password` added to `PUBLIC_PREFIXES`. |
-| [../../src/app/auth/confirm/route.ts](../../src/app/auth/confirm/route.ts) | Recovery-aware redirect on failure (`/forgot-password?expired=1`); already handled OTP + PKCE. |
-| [../../src/app/(auth)/forgot-password/page.tsx](../../src/app/(auth)/forgot-password/page.tsx) | Thin route → `ForgotPasswordForm`, reads `?expired`. |
-| [../../src/app/(auth)/reset-password/page.tsx](../../src/app/(auth)/reset-password/page.tsx) | Thin route → `ResetPasswordForm`. |
-| [../../src/containers/ForgotPassword/ForgotPasswordForm.tsx](../../src/containers/ForgotPassword/ForgotPasswordForm.tsx) | Email form; generic success panel; `expired` alert. |
-| [../../src/containers/ResetPassword/ResetPasswordForm.tsx](../../src/containers/ResetPassword/ResetPasswordForm.tsx) | New-password form; redirect-on-success. |
-| [../../src/containers/index.ts](../../src/containers/index.ts) | Barrel exports for both forms. |
-| [../../src/i18n/messages/en.json](../../src/i18n/messages/en.json) | `Auth.*` recovery strings (`forgotPassword`, `sendResetLink`, `resetLinkSent`, `recoveryLinkExpired`, `resetPasswordDescription`, `newPasswordLabel`, …). |
+| File                                                                                                                     | Role                                                                                                                                                      |
+| ------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [../../src/actions/auth.ts](../../src/actions/auth.ts)                                                                   | `requestPasswordReset`, `resetPassword` server actions (+ existing `signIn`/`signUp`/`signOut`).                                                          |
+| [../../src/lib/validators.ts](../../src/lib/validators.ts)                                                               | `forgotPasswordSchema`, `resetPasswordSchema` (= `signUpSchema.pick({ password })`) + inferred types.                                                     |
+| [../../src/lib/supabase/middleware.ts](../../src/lib/supabase/middleware.ts)                                             | `/forgot-password` added to `PUBLIC_PREFIXES`.                                                                                                            |
+| [../../src/app/auth/confirm/route.ts](../../src/app/auth/confirm/route.ts)                                               | Recovery-aware redirect on failure (`/forgot-password?expired=1`); already handled OTP + PKCE.                                                            |
+| [../../src/app/(auth)/forgot-password/page.tsx](<../../src/app/(auth)/forgot-password/page.tsx>)                         | Thin route → `ForgotPasswordForm`, reads `?expired`.                                                                                                      |
+| [../../src/app/(auth)/reset-password/page.tsx](<../../src/app/(auth)/reset-password/page.tsx>)                           | Thin route → `ResetPasswordForm`.                                                                                                                         |
+| [../../src/containers/ForgotPassword/ForgotPasswordForm.tsx](../../src/containers/ForgotPassword/ForgotPasswordForm.tsx) | Email form; generic success panel; `expired` alert.                                                                                                       |
+| [../../src/containers/ResetPassword/ResetPasswordForm.tsx](../../src/containers/ResetPassword/ResetPasswordForm.tsx)     | New-password form; redirect-on-success.                                                                                                                   |
+| [../../src/containers/index.ts](../../src/containers/index.ts)                                                           | Barrel exports for both forms.                                                                                                                            |
+| [../../src/i18n/messages/en.json](../../src/i18n/messages/en.json)                                                       | `Auth.*` recovery strings (`forgotPassword`, `sendResetLink`, `resetLinkSent`, `recoveryLinkExpired`, `resetPasswordDescription`, `newPasswordLabel`, …). |
 
 ### Types
 

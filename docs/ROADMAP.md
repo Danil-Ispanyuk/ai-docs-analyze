@@ -175,7 +175,11 @@ so budgets can be generous; "no limit" is practically bounded by the token budge
   - Extend the chat scope mechanism (currently single-doc / all-docs) with a folder
     scope; `match_chunks` filters by the folder's `document_ids`.
   - Conversation persistence is already per-scope — add folder scopes to it.
-- **Effort:** L · **Status:** idea
+- **Effort:** L · **Status:** done · **Decided:** one folder per document (nullable
+  `folder_id`); deleting a folder **unfiles** its documents (`SET NULL`) and cascades its
+  chat thread; scope key on `chat_messages` made orthogonal (`document_id` / `folder_id`);
+  `match_chunks` unchanged — the route resolves a folder to its ready `document_ids`;
+  collapsible folder groups in the documents panel.
 
 ### RM-8 · Guest header sign-in for existing users
 

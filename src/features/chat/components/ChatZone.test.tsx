@@ -24,7 +24,7 @@ const noUsage: PlanUsage = { tokensUsed: 0, requestsUsed: 0 };
 function render(props: Partial<Parameters<typeof ChatZone>[0]> = {}) {
 	return renderWithIntl(
 		<ChatZone
-			documentId={null}
+			scope={{ documentId: null, folderId: null }}
 			plan="free"
 			usage={noUsage}
 			scopeName="All documents"
@@ -48,13 +48,13 @@ afterEach(() => {
 
 describe("ChatZone", () => {
 	it("shows the all-documents empty state and disables send with no input", () => {
-		render({ documentId: null });
+		render({ scope: { documentId: null, folderId: null } });
 		expect(screen.getByText(/Searching across all your uploaded documents/)).toBeInTheDocument();
 		expect(document.querySelector('button[type="submit"]')).toBeDisabled();
 	});
 
 	it("sends the question with the scoped documentId and clears the input", async () => {
-		render({ documentId: "doc-1" });
+		render({ scope: { documentId: "doc-1", folderId: null } });
 		const input = screen.getByRole("textbox") as HTMLInputElement;
 
 		await userEvent.type(input, "What is the policy?");
@@ -64,7 +64,7 @@ describe("ChatZone", () => {
 
 		expect(chat.sendMessage).toHaveBeenCalledWith(
 			{ text: "What is the policy?" },
-			{ body: { documentIds: ["doc-1"] } },
+			{ body: { documentId: "doc-1", folderId: undefined } },
 		);
 		expect(input.value).toBe("");
 	});
@@ -96,7 +96,7 @@ describe("ChatZone", () => {
 			},
 		] as unknown as ChatMessage[];
 
-		render({ documentId: "doc-1" });
+		render({ scope: { documentId: "doc-1", folderId: null } });
 
 		expect(screen.getByText("Where is the policy?")).toBeInTheDocument();
 		expect(screen.getByText("It is on page 2.")).toBeInTheDocument();

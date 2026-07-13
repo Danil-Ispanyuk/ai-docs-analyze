@@ -6,4 +6,5 @@ export type DocumentRow = {
 	status: string;
 	created_at: string;
 	size: number;
+	folder_id: string | null;
 };

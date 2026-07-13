@@ -14,4 +14,12 @@ export {
 	ZoomOutAreaIcon as ZoomOutIcon,
 	Maximize01Icon as ExpandIcon,
 	Minimize01Icon as CollapseIcon,
+	Folder01Icon as FolderIcon,
+	FolderAddIcon as FolderAddIcon,
+	Add01Icon as AddIcon,
+	ArrowDown01Icon as ChevronDownIcon,
+	ArrowRight01Icon as ChevronRightIcon,
+	PencilEdit02Icon as EditIcon,
+	Delete02Icon as DeleteIcon,
+	MoreHorizontalIcon as MoreIcon,
 } from "@hugeicons/core-free-icons";

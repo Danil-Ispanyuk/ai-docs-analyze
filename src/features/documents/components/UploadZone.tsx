@@ -7,64 +7,26 @@ import { cn } from "@/shared/lib/utils";
 import { createClient } from "@/shared/config/supabase/client";
 import { createDocument, ingestDocument, removeDocument } from "@/features/documents/actions";
 import { DOCUMENTS_BUCKET, type DocumentRow } from "@/features/documents/service";
+import type { FolderRow } from "@/features/folders/service";
+import type { ChatScope } from "@/features/chat/types";
+import { NewFolderButton, FolderGroup } from "@/features/folders/components";
 import { getPlanLimits, formatStorage } from "@/features/billing/service";
 import { toast } from "@/shared/lib/toast";
-import { RemoveDocumentModal } from "./modals/RemoveDocument";
+import { DocumentListItem } from "./DocumentListItem";
 import { UsageMeter } from "@/features/billing/components/UsageMeter";
-import { Button } from "@/shared/ui/button";
-import { DOCUMENT_STATUSES } from "@/shared/constants/general";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-	DocumentIcon,
-	UploadIcon,
-	CloseIcon,
-	InformationCircleIcon,
-	RetryIcon,
-} from "@/shared/assets/icons";
+import { DocumentIcon, UploadIcon, InformationCircleIcon } from "@/shared/assets/icons";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
-
-function DocumentStatusBadge({ status }: { status: string }) {
-	const t = useT();
-
-	if (status === DOCUMENT_STATUSES.PENDING) {
-		return (
-			<span className="shrink-0 text-xs text-foreground/50">{t("Workspace.statusPending")}</span>
-		);
-	}
-
-	if (status === DOCUMENT_STATUSES.PROCESSING) {
-		return (
-			<span className="flex shrink-0 items-center gap-1 text-xs text-foreground/50">
-				<span
-					className="size-3 animate-spin rounded-full border-2 border-current border-t-transparent"
-					aria-hidden
-				/>
-				{t("Workspace.statusProcessing")}
-			</span>
-		);
-	}
-
-	if (status === DOCUMENT_STATUSES.ERROR) {
-		return <span className="shrink-0 text-xs text-destructive">{t("Workspace.statusError")}</span>;
-	}
-
-	if (status === DOCUMENT_STATUSES.READY) {
-		return (
-			<span className="shrink-0 text-xs text-emerald-600 dark:text-emerald-500">
-				{t("Workspace.statusReady")}
-			</span>
-		);
-	}
-
-	return null;
-}
 
 interface UploadZoneProps {
 	userId: string;
 	plan: string;
 	documents: DocumentRow[];
-	selectedDocId: string | null;
-	handleSelectDocument: (id: string | null) => void;
+	folders: FolderRow[];
+	scope: ChatScope;
+	onSelectAll: () => void;
+	onSelectDocument: (id: string) => void;
+	onSelectFolder: (id: string) => void;
 	className?: string;
 }
 
@@ -72,8 +34,11 @@ export function UploadZone({
 	userId,
 	plan,
 	documents,
-	handleSelectDocument,
-	selectedDocId,
+	folders,
+	scope,
+	onSelectAll,
+	onSelectDocument,
+	onSelectFolder,
 	className,
 }: UploadZoneProps) {
 	const t = useT();
@@ -92,6 +57,9 @@ export function UploadZone({
 	const [isRemoving, startRemove] = useTransition();
 	const [isReingesting, startReingest] = useTransition();
 	const [isDragging, setIsDragging] = useState(false);
+
+	const isAllActive = !scope.documentId && !scope.folderId;
+	const unfiledDocuments = documents.filter((document) => !document.folder_id);
 
 	const uploadOne = async (file: File): Promise<string | null> => {
 		const supabase = createClient();
@@ -190,11 +158,25 @@ export function UploadZone({
 				toast.error(result.error);
 				return;
 			}
-			if (selectedDocId === id) handleSelectDocument(null);
+			if (scope.documentId === id) onSelectAll();
 			router.refresh();
 			toast.success(t("Workspace.removeSuccess"));
 		});
 	};
+
+	const renderDocument = (document: DocumentRow) => (
+		<DocumentListItem
+			key={document.id}
+			document={document}
+			folders={folders}
+			isActive={scope.documentId === document.id}
+			onSelect={() => onSelectDocument(document.id)}
+			onReingest={() => handleReingest(document.id)}
+			onRemove={() => handleRemove(document.id)}
+			isReingesting={isReingesting}
+			isRemoving={isRemoving}
+		/>
+	);
 
 	return (
 		<aside
@@ -203,7 +185,10 @@ export function UploadZone({
 				className,
 			)}
 		>
-			<h2 className="text-sm font-medium text-foreground/80">{t("Workspace.documentsTitle")}</h2>
+			<div className="flex items-center justify-between gap-2">
+				<h2 className="text-sm font-medium text-foreground/80">{t("Workspace.documentsTitle")}</h2>
+				<NewFolderButton />
+			</div>
 
 			<label
 				onDragOver={(event) => {
@@ -289,7 +274,7 @@ export function UploadZone({
 				)}
 			</div>
 
-			{documents.length === 0 ? (
+			{documents.length === 0 && folders.length === 0 ? (
 				<div className="flex flex-1 flex-col items-center justify-center gap-2 text-center text-foreground/40">
 					<HugeiconsIcon icon={DocumentIcon} className="size-6" />
 					<p className="text-xs">{t("Workspace.documentsEmpty")}</p>
@@ -300,16 +285,16 @@ export function UploadZone({
 						<div
 							role="button"
 							tabIndex={0}
-							onClick={() => handleSelectDocument(null)}
+							onClick={onSelectAll}
 							onKeyDown={(event) => {
 								if (event.key === "Enter" || event.key === " ") {
 									event.preventDefault();
-									handleSelectDocument(null);
+									onSelectAll();
 								}
 							}}
 							className={cn(
 								"flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl border px-3 py-2 text-left text-sm transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
-								selectedDocId === null
+								isAllActive
 									? "border-primary bg-primary/5 text-primary"
 									: "border-border text-foreground/70 hover:bg-muted/50",
 							)}
@@ -328,73 +313,40 @@ export function UploadZone({
 							</Tooltip>
 						</div>
 					</li>
-					{documents.map((document) => {
-						const isActive = selectedDocId === document.id;
+
+					{folders.map((folder) => {
+						const folderDocuments = documents.filter(
+							(document) => document.folder_id === folder.id,
+						);
 						return (
-							<li key={document.id}>
-								<div
-									role="button"
-									tabIndex={0}
-									onClick={() => handleSelectDocument(document.id)}
-									onKeyDown={(event) => {
-										if (event.key === "Enter" || event.key === " ") {
-											event.preventDefault();
-											handleSelectDocument(document.id);
-										}
-									}}
-									className={cn(
-										"group flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
-										isActive ? "border-primary bg-primary/5" : "border-border hover:bg-muted/50",
-									)}
-								>
-									<HugeiconsIcon
-										icon={DocumentIcon}
-										className={cn("size-6", isActive ? "text-primary" : "text-foreground/40")}
-									/>
-									<span className="min-w-0 flex-1 truncate text-sm">{document.name}</span>
-
-									<DocumentStatusBadge status={document.status} />
-
-									{document.status === DOCUMENT_STATUSES.ERROR && (
-										<Button
-											type="button"
-											variant="ghost"
-											size="icon-sm"
-											aria-label={t("Workspace.retry")}
-											disabled={isReingesting}
-											onClick={(event) => {
-												event.stopPropagation();
-												handleReingest(document.id);
-											}}
-											className="shrink-0 text-foreground/40 transition hover:text-primary"
-										>
-											<HugeiconsIcon icon={RetryIcon} className="size-3.5" />
-										</Button>
-									)}
-
-									<RemoveDocumentModal
-										onSubmit={() => handleRemove(document.id)}
-										documentTitle={document.name}
-									>
-										<Button
-											type="button"
-											variant="ghost"
-											size="icon-sm"
-											aria-label="Remove"
-											disabled={isRemoving}
-											className="shrink-0 text-foreground/40 opacity-0 transition group-hover:opacity-100 hover:text-destructive"
-										>
-											<HugeiconsIcon icon={CloseIcon} className="size-3.5" />
-										</Button>
-									</RemoveDocumentModal>
-								</div>
-							</li>
+							<FolderGroup
+								key={folder.id}
+								folder={folder}
+								isActive={scope.folderId === folder.id}
+								count={folderDocuments.length}
+								onSelect={() => onSelectFolder(folder.id)}
+							>
+								{folderDocuments.length > 0 ? (
+									folderDocuments.map(renderDocument)
+								) : (
+									<li className="px-3 py-1.5 text-xs text-foreground/40">
+										{t("Folders.emptyFolder")}
+									</li>
+								)}
+							</FolderGroup>
 						);
 					})}
+
+					{folders.length > 0 && unfiledDocuments.length > 0 && (
+						<li className="px-2 pt-2 text-xs font-medium text-foreground/40">
+							{t("Folders.unfiled")}
+						</li>
+					)}
+					{unfiledDocuments.map(renderDocument)}
 				</ul>
 			)}
 
-			{documents.length > 0 && selectedDocId === null && (
+			{documents.length > 0 && isAllActive && (
 				<div className="flex gap-2 rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs text-foreground/70 md:hidden">
 					<HugeiconsIcon
 						icon={InformationCircleIcon}

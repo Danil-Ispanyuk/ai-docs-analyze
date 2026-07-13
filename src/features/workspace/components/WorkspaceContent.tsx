@@ -16,8 +16,13 @@ export async function WorkspaceContent() {
 
 	const { data } = await supabase
 		.from("documents")
-		.select("id, name, status, created_at, size")
+		.select("id, name, status, created_at, size, folder_id")
 		.order("created_at", { ascending: false });
+
+	const { data: folders } = await supabase
+		.from("folders")
+		.select("id, name, created_at")
+		.order("created_at", { ascending: true });
 
 	const { data: profile } = await supabase
 		.from("profiles")
@@ -32,12 +37,13 @@ export async function WorkspaceContent() {
 	const usage = { tokensUsed: usageRow.tokens_used, requestsUsed: usageRow.requests_used };
 	const isGuest = user.is_anonymous ?? false;
 
-	const initialMessages = await getChatMessages(null);
+	const initialMessages = await getChatMessages({ documentId: null, folderId: null });
 
 	return (
 		<WorkspaceLayout isGuest={isGuest} email={user.email ?? ""} plan={plan}>
 			<PreviewContainer
 				documents={data || []}
+				folders={folders || []}
 				userId={user.id}
 				plan={plan}
 				usage={usage}

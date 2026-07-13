@@ -100,11 +100,15 @@ function makeSupabase(config: SupabaseConfig) {
 			}
 
 			if (table === "documents") {
-				return {
-					select: () => ({
-						eq: async () => ({ data: documents.map((id) => ({ id })), error: null }),
-					}),
+				// Chainable so both the all-docs ready query (`.select().eq()`) and the
+				// folder-scope query (`.select().eq().eq()`) resolve to the configured ids.
+				const query: Record<string, unknown> = {
+					select: () => query,
+					eq: () => query,
+					then: (resolve: (value: { data: { id: string }[]; error: null }) => unknown) =>
+						Promise.resolve({ data: documents.map((id) => ({ id })), error: null }).then(resolve),
 				};
+				return query;
 			}
 
 			const fallbackQuery = {
@@ -122,7 +126,7 @@ function makeSupabase(config: SupabaseConfig) {
 	};
 }
 
-function chatRequest(body: unknown = { messages: [], documentIds: [] }): Request {
+function chatRequest(body: unknown = { messages: [] }): Request {
 	return { json: async () => body } as unknown as Request;
 }
 
@@ -177,13 +181,13 @@ describe("POST /api/chat — guards", () => {
 	it("returns 500 when the vector search RPC errors", async () => {
 		state.supabase = makeSupabase({ matchError: { message: "search failed" } });
 		const response = await POST(
-			chatRequest({ messages: [{ parts: [{ type: "text", text: "hi" }] }], documentIds: [] }),
+			chatRequest({ messages: [{ parts: [{ type: "text", text: "hi" }] }], documentId: "doc-1" }),
 		);
 		expect(response.status).toBe(500);
 	});
 
 	it("returns 400 when the question is empty", async () => {
-		const response = await POST(chatRequest({ messages: [], documentIds: [] }));
+		const response = await POST(chatRequest({ messages: [] }));
 
 		expect(response.status).toBe(400);
 		expect(await response.text()).toMatch(/question is required/i);
@@ -192,9 +196,10 @@ describe("POST /api/chat — guards", () => {
 });
 
 describe("POST /api/chat — happy path", () => {
-	it("streams a 200 response and dedupes sources by document + page", async () => {
+	it("dedupes sources by document + page across a folder scope", async () => {
 		let matchArgs: Record<string, unknown> | undefined;
 		state.supabase = makeSupabase({
+			documents: ["doc-1", "doc-2"],
 			onMatchChunks: (args) => {
 				matchArgs = args;
 			},
@@ -208,13 +213,14 @@ describe("POST /api/chat — happy path", () => {
 		const response = await POST(
 			chatRequest({
 				messages: [{ parts: [{ type: "text", text: "What is the policy?" }] }],
-				documentIds: ["doc-1", "doc-2"],
+				folderId: "folder-1",
 			}),
 		);
 		await state.executePromise;
 
 		expect(response.status).toBe(200);
-		expect(matchArgs).toMatchObject({ match_count: 12, match_threshold: 0.12 });
+		// A folder resolves to its documents, so retrieval is balanced per document.
+		expect(matchArgs).toMatchObject({ match_count: 6, match_threshold: 0.12 });
 		const sourcesPart = state.writes.find((part) => part.type === "data-sources");
 		expect(sourcesPart?.data).toEqual([
 			{ documentId: "doc-1", name: "Policy.pdf", page: 1 },
@@ -238,7 +244,6 @@ describe("POST /api/chat — happy path", () => {
 		const response = await POST(
 			chatRequest({
 				messages: [{ parts: [{ type: "text", text: "What are these about?" }] }],
-				documentIds: [],
 			}),
 		);
 		await state.executePromise;
@@ -269,7 +274,7 @@ describe("POST /api/chat — happy path", () => {
 		const response = await POST(
 			chatRequest({
 				messages: [{ parts: [{ type: "text", text: "What is this document about?" }] }],
-				documentIds: ["doc-1"],
+				documentId: "doc-1",
 			}),
 		);
 		await state.executePromise;

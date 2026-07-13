@@ -16,12 +16,12 @@ import {
 } from "@/features/billing/service";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ChatIcon, SendIcon } from "@/shared/assets/icons";
-import { ChatMessage } from "@/features/chat/types";
+import { ChatMessage, type ChatScope } from "@/features/chat/types";
 import { getChatMessages, clearChatMessages } from "@/features/chat/actions";
 import { SourceChips } from "./SourceChips";
 
 export function ChatZone({
-	documentId,
+	scope,
 	plan,
 	usage,
 	className,
@@ -29,7 +29,7 @@ export function ChatZone({
 	initialMessages,
 	onSourceClick,
 }: {
-	documentId: string | null;
+	scope: ChatScope;
 	plan: string;
 	usage: PlanUsage;
 	className?: string;
@@ -58,7 +58,7 @@ export function ChatZone({
 
 	const handleClearChat = () => {
 		startClear(async () => {
-			const result = await clearChatMessages(documentId);
+			const result = await clearChatMessages(scope);
 			if (result?.error) {
 				toast.error(t("Workspace.chatError"));
 				return;
@@ -76,13 +76,13 @@ export function ChatZone({
 			return;
 		}
 		let active = true;
-		getChatMessages(documentId).then((loaded) => {
+		getChatMessages(scope).then((loaded) => {
 			if (active) setMessages(loaded);
 		});
 		return () => {
 			active = false;
 		};
-	}, [documentId, setMessages]);
+	}, [scope, setMessages]);
 
 	// Tick once a minute so the "limits reset in …" countdown stays current.
 	useEffect(() => {
@@ -169,9 +169,11 @@ export function ChatZone({
 						</p>
 						<p className="max-w-sm text-sm text-foreground/50">{t("Workspace.chatWelcomeBody")}</p>
 						<p className="max-w-xs text-xs text-foreground/40">
-							{documentId
+							{scope.documentId
 								? t("Workspace.chatScopedDoc", { name: scopeName })
-								: t("Workspace.chatScopedAll")}
+								: scope.folderId
+									? t("Workspace.chatScopedFolder", { name: scopeName })
+									: t("Workspace.chatScopedAll")}
 						</p>
 					</div>
 				) : (
@@ -221,7 +223,12 @@ export function ChatZone({
 					if (!input.trim()) return;
 					sendMessage(
 						{ text: input },
-						{ body: { documentIds: documentId ? [documentId] : undefined } },
+						{
+							body: {
+								documentId: scope.documentId ?? undefined,
+								folderId: scope.folderId ?? undefined,
+							},
+						},
 					);
 					setSentThisSession((previous) => previous + 1);
 					setInput("");
