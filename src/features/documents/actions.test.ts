@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 const spies = vi.hoisted(() => ({
-	single: vi.fn(),
+	maybeSingle: vi.fn(),
 	removeStorage: vi.fn(),
 	deleteEq: vi.fn(),
 }));
@@ -9,7 +9,7 @@ const spies = vi.hoisted(() => ({
 vi.mock("@/shared/config/supabase/server", () => ({
 	createClient: async () => ({
 		from: () => ({
-			select: () => ({ eq: () => ({ single: spies.single }) }),
+			select: () => ({ eq: () => ({ maybeSingle: spies.maybeSingle }) }),
 			delete: () => ({ eq: spies.deleteEq }),
 		}),
 		storage: {
@@ -20,15 +20,15 @@ vi.mock("@/shared/config/supabase/server", () => ({
 
 import { removeDocument } from "./actions";
 
-describe("removeDocument (TD-11: storage before DB row)", () => {
+describe("removeDocument", () => {
 	beforeEach(() => {
-		spies.single.mockReset();
+		spies.maybeSingle.mockReset();
 		spies.removeStorage.mockReset();
 		spies.deleteEq.mockReset();
-		spies.single.mockResolvedValue({ data: { storage_path: "user-1/file.pdf" }, error: null });
+		spies.maybeSingle.mockResolvedValue({ data: { storage_path: "user-1/file.pdf" }, error: null });
 	});
 
-	it("aborts and does not delete the DB row when storage removal fails", async () => {
+	it("returns the storage error without removing the document record", async () => {
 		spies.removeStorage.mockResolvedValue({ error: { message: "storage boom" } });
 
 		const result = await removeDocument("doc-1");
@@ -37,7 +37,7 @@ describe("removeDocument (TD-11: storage before DB row)", () => {
 		expect(spies.deleteEq).not.toHaveBeenCalled();
 	});
 
-	it("removes the storage object first, then the DB row, on the happy path", async () => {
+	it("removes the storage object before removing the document record", async () => {
 		spies.removeStorage.mockResolvedValue({ error: null });
 		spies.deleteEq.mockResolvedValue({ error: null });
 
@@ -48,8 +48,8 @@ describe("removeDocument (TD-11: storage before DB row)", () => {
 		expect(spies.deleteEq).toHaveBeenCalledWith("id", "doc-1");
 	});
 
-	it("returns the fetch error when the document is not found", async () => {
-		spies.single.mockResolvedValue({ data: null, error: { message: "not found" } });
+	it("returns the fetch error without touching storage", async () => {
+		spies.maybeSingle.mockResolvedValue({ data: null, error: { message: "not found" } });
 
 		const result = await removeDocument("missing");
 
