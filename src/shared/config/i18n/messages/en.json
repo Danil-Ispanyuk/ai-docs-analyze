@@ -153,6 +153,16 @@
 		"paymentsTitle": "Payments",
 		"noPayments": "No payments yet.",
 		"viewInvoice": "View invoice",
-		"statusUnknown": "Unknown"
+		"statusUnknown": "Unknown",
+		"dangerZoneTitle": "Danger zone",
+		"deleteAccount": "Delete account",
+		"deleteAccountDescription": "Permanently delete your account and all of your documents, chats, and data. This can't be undone.",
+		"deleteModalTitle": "Delete your account?",
+		"deleteModalDescription": "This permanently deletes your account and everything in it — documents, chats, and usage. This action can't be undone. Enter your password and email to confirm.",
+		"deletePasswordLabel": "Password",
+		"deletePasswordIncorrect": "Your password is incorrect.",
+		"deleteConfirmLabel": "Type {email} to confirm",
+		"keepAccount": "Keep account",
+		"confirmDelete": "Delete account"
 	}
 }

@@ -159,7 +159,10 @@ so budgets can be generous; "no limit" is practically bounded by the token budge
     FK-cascade + storage-cleanup pattern from `guestCleanup.sql` / RM-4.
   - Confirm dialog with explicit intent (type-to-confirm or a clear warning); sign the
     user out and route to the landing page after deletion.
-- **Effort:** L · **Status:** idea
+- **Effort:** L · **Status:** done · **Decided:** SECURITY DEFINER RPC
+  `delete_current_user()` (scoped to `auth.uid()`, like guest cleanup); mandatory confirm
+  modal gated by **password re-auth + type-your-email** (no SMTP dependency); best-effort
+  Stripe subscription cancel before deletion.
 
 ### RM-7 · Folders to group documents and scope chat
 

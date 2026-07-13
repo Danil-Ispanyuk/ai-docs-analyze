@@ -5,6 +5,7 @@ import { PLAN_TYPES } from "@/shared/constants/general";
 import { ChangePasswordForm } from "./ChangePasswordForm";
 import { PaymentHistory } from "./PaymentHistory";
 import { CancelSubscriptionButton } from "./CancelSubscriptionButton";
+import { DeleteAccountButton } from "./DeleteAccountButton";
 
 interface ProfileContentProps {
 	overview: BillingOverview;
@@ -100,6 +101,20 @@ export async function ProfileContent({ overview, email, fullName }: ProfileConte
 			<section className="space-y-4 rounded-3xl border border-border bg-card p-6 text-card-foreground">
 				<h2 className="font-heading text-base font-medium">{t("Profile.paymentsTitle")}</h2>
 				<PaymentHistory invoices={overview.invoices} />
+			</section>
+
+			<section className="space-y-4 rounded-3xl border border-destructive/30 bg-card p-6 text-card-foreground">
+				<div className="flex items-center justify-between gap-3">
+					<div>
+						<h2 className="font-heading text-base font-medium text-destructive">
+							{t("Profile.dangerZoneTitle")}
+						</h2>
+						<p className="mt-1 text-sm text-foreground/55">
+							{t("Profile.deleteAccountDescription")}
+						</p>
+					</div>
+					<DeleteAccountButton email={email} />
+				</div>
 			</section>
 		</div>
 	);
