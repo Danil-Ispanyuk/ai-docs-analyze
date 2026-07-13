@@ -24,14 +24,14 @@ and meters that cost:
 
 - **Upload** is rejected (before ingestion) if the file exceeds the plan's size, the user is
   over their file count, or the upload would push them past the plan's **total storage** budget.
-- **Chat** returns `429` (before embedding/completion) once the monthly token budget or
-  request cap is hit; every completed answer's token usage is metered back.
+- **Chat** returns `429` (before embedding/completion) once the current 5-hour window's token
+  budget or request cap is hit; every completed answer's token usage is metered back.
 - An **"Upgrade to Pro"** button in the header (shown to non-Pro users) starts Stripe Checkout;
   paying flips `profiles.plan` to `pro` via the webhook and the limits rise automatically.
 - **Limits are surfaced in the UI:** `UploadZone` shows a live **storage meter** (used vs the
   plan's storage budget, with "X left" / "Storage full") plus the per-file size / file-count
   hints (and disables the dropzone at the file or storage cap); `ChatZone`'s header shows a
-  usage meter — questions used vs cap for request-capped plans (guest), otherwise the monthly
+  usage meter — questions used vs cap for request-capped plans (guest), otherwise the
   token budget. Both use the shared `UsageMeter` component (bar turns amber ≥90 %, red ≥100 %).
   Usage comes from a `get_usage` fetch in `WorkspaceContent`; `formatTokens` renders compact
   budgets (`500k`, `5M`) and `formatStorage` renders storage figures (`2.3 MB`, `2 GB`) — both
@@ -52,9 +52,11 @@ Stripe on top.
 - **`profiles.plan`** (`guest | free | pro`, default `free`). The `handle_new_user` trigger in
   [../../prisma/sql/auth_setup.sql](../../prisma/sql/auth_setup.sql) sets it to `guest` for
   anonymous sign-ins (`new.is_anonymous`), `free` otherwise.
-- **`usage` table** — one row per user per **calendar month**
-  (`period_start = date_trunc('month', now())`), with `tokens_used` / `requests_used`. A new
-  month naturally yields a fresh row, which _is_ the reset — no cron needed.
+- **`usage` table** — one row per user per **rolling 5-hour window**
+  (`period_start = usage_period_start()`, i.e. `now()` floored to a 5-hour boundary), with
+  `tokens_used` / `requests_used`. When the window rolls over there is no row for the new
+  period, which _is_ the reset — no cron needed. (This resets both counters together, since
+  they share the row; the request cap rides the same window.)
 - **Tamper-proof counters.** [../../prisma/sql/billingSetup.sql](../../prisma/sql/billingSetup.sql)
   enables RLS with a **select-only** policy (owner may read their usage) and **no** write
   policy. All writes go through two functions: `get_usage()` (current-period counters, `0/0`
@@ -126,8 +128,9 @@ so a from-scratch replay has the `vector` type. The RLS/trigger/function SQL in
 
 ### 2.5 Decisions & limitations
 
-- **Stripe test mode**, single Pro monthly price. Guest metering is monthly like everyone else
-  for now; a lifetime guest budget is revisited with RM-4.
+- **Stripe test mode**, single Pro monthly price. Usage metering resets on a rolling 5-hour
+  window for every plan (demo-friendly — a visitor can't permanently exhaust the budget); the
+  Stripe price itself is still billed monthly.
 - Chat over-limit `429` bodies are **raw English** (surfaced via `useChat` `onError`); mapping
   them to i18n keys / toasts is deferred to TD-6 / RM-5.
 - `lib/stripe.ts` instantiates the client at import time, so `STRIPE_SECRET_KEY` must be set

@@ -93,42 +93,78 @@ export function UploadZone({
 	const [isReingesting, startReingest] = useTransition();
 	const [isDragging, setIsDragging] = useState(false);
 
-	const handleFile = (file: File) => {
-		if (file.type !== "application/pdf") {
-			toast.error(t("Workspace.fileTypeError"));
-			return;
+	const uploadOne = async (file: File): Promise<string | null> => {
+		const supabase = createClient();
+		const storagePath = `${userId}/${crypto.randomUUID()}.pdf`;
+
+		const { error: uploadError } = await supabase.storage
+			.from(DOCUMENTS_BUCKET)
+			.upload(storagePath, file, { contentType: "application/pdf" });
+
+		if (uploadError) {
+			toast.error(uploadError.message);
+			return null;
 		}
-		if (limits.maxFileSize !== null && file.size > limits.maxFileSize) {
-			const maxFileSizeMb = Math.round(limits.maxFileSize / (1024 * 1024));
-			toast.error(t("Workspace.fileSizeError", { size: maxFileSizeMb }));
-			return;
+
+		const result = await createDocument({ name: file.name, storagePath });
+		if (result.error || !result.documentId) {
+			toast.error(result.error ?? t("Workspace.uploadError"));
+			return null;
 		}
-		if (usedBytes + file.size > limits.storageLimit) {
-			toast.error(t("Workspace.storageError", { size: formatStorage(limits.storageLimit) }));
-			return;
+		return result.documentId;
+	};
+
+	const handleFiles = (fileList: File[]) => {
+		// Validate against the plan limits while accumulating, so a batch can't slip
+		// past the file-count or storage cap one file at a time.
+		let projectedBytes = usedBytes;
+		let projectedCount = documents.length;
+		const accepted: File[] = [];
+		// Skip files whose name already exists (case-insensitive), including duplicates
+		// within the same batch — matched names are added as they are accepted.
+		const seenNames = new Set(documents.map((document) => document.name.toLowerCase()));
+
+		for (const file of fileList) {
+			if (file.type !== "application/pdf") {
+				toast.error(t("Workspace.fileTypeError"));
+				continue;
+			}
+			if (seenNames.has(file.name.toLowerCase())) {
+				toast.error(t("Workspace.duplicateFile", { name: file.name }));
+				continue;
+			}
+			if (limits.maxFileSize !== null && file.size > limits.maxFileSize) {
+				const maxFileSizeMb = Math.round(limits.maxFileSize / (1024 * 1024));
+				toast.error(t("Workspace.fileSizeError", { size: maxFileSizeMb }));
+				continue;
+			}
+			if (limits.maxFiles !== null && projectedCount >= limits.maxFiles) {
+				toast.error(t("Workspace.uploadLimitReached"));
+				break;
+			}
+			if (projectedBytes + file.size > limits.storageLimit) {
+				toast.error(t("Workspace.storageError", { size: formatStorage(limits.storageLimit) }));
+				break;
+			}
+			accepted.push(file);
+			seenNames.add(file.name.toLowerCase());
+			projectedBytes += file.size;
+			projectedCount += 1;
 		}
+
+		if (!accepted.length) return;
 
 		startUpload(async () => {
-			const supabase = createClient();
-			const storagePath = `${userId}/${crypto.randomUUID()}.pdf`;
-
-			const { error: uploadError } = await supabase.storage
-				.from(DOCUMENTS_BUCKET)
-				.upload(storagePath, file, { contentType: "application/pdf" });
-
-			if (uploadError) {
-				toast.error(uploadError.message);
-				return;
+			const documentIds: string[] = [];
+			for (const file of accepted) {
+				const documentId = await uploadOne(file);
+				if (documentId) documentIds.push(documentId);
 			}
-
-			const result = await createDocument({ name: file.name, storagePath });
 			router.refresh();
-			if (result.error || !result.documentId) {
-				toast.error(result.error ?? t("Workspace.uploadError"));
-				return;
+			if (documentIds.length) {
+				toast.success(t("Workspace.uploadQueued"));
+				documentIds.forEach(runIngestion);
 			}
-			toast.success(t("Workspace.uploadQueued"));
-			runIngestion(result.documentId);
 		});
 	};
 
@@ -178,8 +214,8 @@ export function UploadZone({
 				onDrop={(event) => {
 					event.preventDefault();
 					setIsDragging(false);
-					const file = event.dataTransfer.files?.[0];
-					if (file) handleFile(file);
+					const files = Array.from(event.dataTransfer.files ?? []);
+					if (files.length) handleFiles(files);
 				}}
 				className={cn(
 					"flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border px-4 py-8 text-center transition-colors hover:border-foreground/30 hover:bg-muted/40",
@@ -190,11 +226,12 @@ export function UploadZone({
 				<input
 					type="file"
 					accept="application/pdf,.pdf"
+					multiple
 					className="sr-only"
 					disabled={isUploading || isBlocked}
 					onChange={(event) => {
-						const file = event.target.files?.[0];
-						if (file) handleFile(file);
+						const files = Array.from(event.target.files ?? []);
+						if (files.length) handleFiles(files);
 						event.target.value = "";
 					}}
 				/>

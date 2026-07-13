@@ -40,10 +40,10 @@ model Profile {
   @@map("profiles")
 }
 
-// Per-user usage meter for plan limits. One row per user per calendar month
-// (period_start = date_trunc('month', now())); a new month starts a fresh row,
-// which is the reset. Writes go through the increment_usage() SECURITY DEFINER
-// function so users can't reset their own counters — see prisma/sql/billingSetup.sql.
+// Per-user usage meter for plan limits. One row per user per rolling 5-hour window
+// (period_start = usage_period_start()); a new window starts a fresh row, which is
+// the reset. Writes go through the increment_usage() SECURITY DEFINER function so
+// users can't reset their own counters — see prisma/sql/billingSetup.sql.
 model Usage {
   id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId       String   @map("user_id") @db.Uuid

@@ -8,7 +8,12 @@ import { cn } from "@/shared/lib/utils";
 import { toast } from "@/shared/lib/toast";
 import { Button } from "@/shared/ui/button";
 import { UsageMeter } from "@/features/billing/components/UsageMeter";
-import { getPlanLimits, formatTokens, type PlanUsage } from "@/features/billing/service";
+import {
+	getPlanLimits,
+	formatTokens,
+	getNextUsageResetMs,
+	type PlanUsage,
+} from "@/features/billing/service";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ChatIcon, SendIcon } from "@/shared/assets/icons";
 import { ChatMessage } from "@/features/chat/types";
@@ -36,6 +41,7 @@ export function ChatZone({
 	const [input, setInput] = useState("");
 	const [sessionTokens, setSessionTokens] = useState(0);
 	const [sentThisSession, setSentThisSession] = useState(0);
+	const [now, setNow] = useState(() => Date.now());
 	const inputRef = useRef<HTMLInputElement>(null);
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 	const { messages, sendMessage, setMessages, status } = useChat<ChatMessage>({
@@ -66,6 +72,12 @@ export function ChatZone({
 		};
 	}, [documentId, setMessages]);
 
+	// Tick once a minute so the "limits reset in …" countdown stays current.
+	useEffect(() => {
+		const timer = setInterval(() => setNow(Date.now()), 60_000);
+		return () => clearInterval(timer);
+	}, []);
+
 	const limits = getPlanLimits(plan);
 	const isRequestCapped = limits.requestCap !== null;
 
@@ -85,6 +97,15 @@ export function ChatZone({
 				used: formatTokens(usageUsed),
 				max: usageMax !== null ? formatTokens(usageMax) : "∞",
 			});
+
+	const minutesUntilReset = Math.max(1, Math.ceil((getNextUsageResetMs(now) - now) / 60_000));
+	const resetHint =
+		minutesUntilReset >= 60
+			? t("Workspace.usageResetsInHours", {
+					hours: Math.floor(minutesUntilReset / 60),
+					minutes: minutesUntilReset % 60,
+				})
+			: t("Workspace.usageResetsInMinutes", { minutes: minutesUntilReset });
 
 	const last = messages[messages.length - 1];
 	const lastAssistantText =
@@ -108,7 +129,12 @@ export function ChatZone({
 				<p className="truncate text-xs text-foreground/50">
 					{t("Workspace.scope", { scope: scopeName })}
 				</p>
-				<UsageMeter label={usageMeterLabel} valueLabel={usageValueLabel} percent={usagePercent} />
+				<UsageMeter
+					label={usageMeterLabel}
+					valueLabel={usageValueLabel}
+					percent={usagePercent}
+					hint={resetHint}
+				/>
 			</div>
 			<div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4">
 				{messages.length === 0 ? (
