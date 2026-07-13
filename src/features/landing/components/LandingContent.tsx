@@ -45,7 +45,7 @@ export function LandingContent() {
 						{t("Landing.eyebrow")}
 					</span>
 
-					<h1 className="bg-gradient-to-br from-foreground to-foreground/55 bg-clip-text text-4xl font-semibold tracking-tight text-balance text-transparent sm:text-6xl">
+					<h1 className="bg-gradient-to-br from-foreground to-foreground/55 bg-clip-text pb-1 text-5xl leading-none font-semibold tracking-tight text-balance text-transparent sm:text-6xl">
 						{t("Landing.title")}
 					</h1>
 
