@@ -17,7 +17,7 @@ export function Header({ isGuest, email, plan }: HeaderProps) {
 
 	return (
 		<header className="flex items-center justify-between gap-4 border-b border-border bg-background/80 px-6 py-3 backdrop-blur">
-			<Logo />
+			<Logo isGuest={isGuest} />
 			<div className="flex items-center gap-3">
 				{isGuest ? (
 					<Button size="sm" render={<Link href="/save-account" />}>
@@ -29,6 +29,11 @@ export function Header({ isGuest, email, plan }: HeaderProps) {
 				<span className="hidden text-sm text-foreground/60 sm:inline">
 					{isGuest ? t("Workspace.guestSession") : t("Workspace.signedInAs", { email })}
 				</span>
+				{!isGuest && (
+					<Button variant="ghost" size="sm" render={<Link href="/profile" />}>
+						{t("Workspace.profile")}
+					</Button>
+				)}
 				{!isGuest && <LogoutButton />}
 			</div>
 		</header>

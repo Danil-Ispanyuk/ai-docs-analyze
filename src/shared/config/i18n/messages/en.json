@@ -102,6 +102,7 @@
 		"upgrade": "Upgrade to Pro",
 		"upgrading": "Redirecting…",
 		"upgradeError": "Couldn't start checkout.",
+		"profile": "Profile",
 		"send": "Send",
 		"modal": {
 			"confirm": "Confirm",
@@ -111,5 +112,41 @@
 				"removeDescription": "Are you sure that you want to remove \"{document}\"?"
 			}
 		}
+	},
+	"Profile": {
+		"title": "Profile",
+		"accountTitle": "Account",
+		"emailLabel": "Email",
+		"nameLabel": "Name",
+		"changePasswordTitle": "Change password",
+		"changePasswordDescription": "Enter your current password to set a new one.",
+		"currentPasswordLabel": "Current password",
+		"newPasswordLabel": "New password",
+		"updatePassword": "Update password",
+		"updatingPassword": "Updating…",
+		"passwordUpdated": "Password updated.",
+		"currentPasswordIncorrect": "Your current password is incorrect.",
+		"planTitle": "Plan",
+		"planDescription": "Your current subscription plan.",
+		"planFree": "Free",
+		"planPro": "Pro",
+		"planGuest": "Guest",
+		"renewsOn": "Renews on {date}",
+		"endsOn": "Pro until {date}",
+		"upgradePrompt": "Upgrade to Pro for higher limits.",
+		"cancelPrompt": "Cancel your subscription anytime.",
+		"cancelSubscription": "Cancel subscription",
+		"cancelModalTitle": "Cancel subscription?",
+		"cancelModalDescription": "Your Pro plan stays active until the end of the current billing period, then reverts to Free. No further charges.",
+		"keepSubscription": "Keep subscription",
+		"confirmCancel": "Cancel subscription",
+		"cancelScheduled": "Subscription canceled — Pro stays active until the period ends.",
+		"cancelScheduledNote": "Subscription canceled — Pro stays active until {date}.",
+		"cancelError": "Couldn't cancel the subscription.",
+		"noActiveSubscription": "You don't have an active subscription.",
+		"paymentsTitle": "Payments",
+		"noPayments": "No payments yet.",
+		"viewInvoice": "View invoice",
+		"statusUnknown": "Unknown"
 	}
 }
