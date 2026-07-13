@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useT } from "@/shared/config/i18n";
@@ -17,7 +17,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ChatIcon, SendIcon } from "@/shared/assets/icons";
 import { ChatMessage } from "@/features/chat/types";
-import { getChatMessages } from "@/features/chat/actions";
+import { getChatMessages, clearChatMessages } from "@/features/chat/actions";
 import { SourceChips } from "./SourceChips";
 
 export function ChatZone({
@@ -54,6 +54,18 @@ export function ChatZone({
 		},
 	});
 	const isBusy = status === "submitted" || status === "streaming";
+	const [isClearing, startClear] = useTransition();
+
+	const handleClearChat = () => {
+		startClear(async () => {
+			const result = await clearChatMessages(documentId);
+			if (result?.error) {
+				toast.error(t("Workspace.chatError"));
+				return;
+			}
+			setMessages([]);
+		});
+	};
 
 	// Load the persisted thread for the selected scope. The starting scope (all
 	// documents) is already hydrated from initialMessages, so skip the first run.
@@ -126,9 +138,21 @@ export function ChatZone({
 			)}
 		>
 			<div className="shrink-0 space-y-2 border-b border-border px-4 py-2.5">
-				<p className="truncate text-xs text-foreground/50">
-					{t("Workspace.scope", { scope: scopeName })}
-				</p>
+				<div className="flex items-center justify-between gap-2">
+					<p className="min-w-0 flex-1 truncate text-xs text-foreground/50">
+						{t("Workspace.scope", { scope: scopeName })}
+					</p>
+					<Button
+						type="button"
+						variant="ghost"
+						size="sm"
+						disabled={messages.length === 0 || isBusy || isClearing}
+						onClick={handleClearChat}
+						className="h-auto shrink-0 px-2 py-1 text-xs text-foreground/50 hover:text-destructive"
+					>
+						{t("Workspace.clearChat")}
+					</Button>
+				</div>
 				<UsageMeter
 					label={usageMeterLabel}
 					valueLabel={usageValueLabel}

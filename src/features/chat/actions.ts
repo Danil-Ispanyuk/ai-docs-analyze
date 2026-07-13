@@ -29,3 +29,18 @@ export async function getChatMessages(documentId: string | null): Promise<ChatMe
 		parts: row.parts,
 	})) as ChatMessage[];
 }
+
+// Deletes every message in one thread (scope) for the signed-in user. RLS + the
+// explicit user_id filter keep it to their own rows.
+export async function clearChatMessages(documentId: string | null): Promise<{ error?: string }> {
+	const supabase = await createClient();
+	const user = await getCurrentUser();
+	if (!user) return { error: "Unauthorized" };
+
+	let query = supabase.from("chat_messages").delete().eq("user_id", user.id);
+	query = documentId ? query.eq("document_id", documentId) : query.is("document_id", null);
+
+	const { error } = await query;
+	if (error) return { error: error.message };
+	return {};
+}

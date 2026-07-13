@@ -20,6 +20,9 @@ const RATE_LIMIT_MAX = 10;
 const RATE_LIMIT_WINDOW_SECONDS = 60;
 const MATCH_COUNT = 12;
 const MATCH_THRESHOLD = 0.12;
+// Only the last N messages of the thread are sent to the model — the full thread
+// still lives in the UI/DB, but old turns don't keep inflating token cost.
+const MAX_HISTORY_MESSAGES = 12;
 
 type Matched = {
 	document_id: string;
@@ -299,7 +302,7 @@ export async function POST(req: Request) {
 			const result = streamText({
 				model: openai("gpt-4o-mini"),
 				instructions,
-				messages: await convertToModelMessages(messages),
+				messages: await convertToModelMessages(messages.slice(-MAX_HISTORY_MESSAGES)),
 				onFinish: async ({ text, totalUsage }) => {
 					resolveTokens(
 						totalUsage?.totalTokens ??
