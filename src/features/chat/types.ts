@@ -6,4 +6,4 @@ export type Source = {
 	page: number | null;
 };
 
-export type ChatMessage = UIMessage<never, { sources: Source[] }>;
+export type ChatMessage = UIMessage<{ tokens?: number }, { sources: Source[] }>;

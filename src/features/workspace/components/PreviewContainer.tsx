@@ -8,6 +8,7 @@ import { cn } from "@/shared/lib/utils";
 import { useT } from "@/shared/config/i18n";
 import type { DocumentRow } from "@/features/documents/service";
 import type { PlanUsage } from "@/features/billing/service";
+import type { ChatMessage } from "@/features/chat/types";
 import { Button } from "@/shared/ui/button";
 
 interface PreviewContainerProps {
@@ -15,11 +16,18 @@ interface PreviewContainerProps {
 	plan: string;
 	usage: PlanUsage;
 	documents: DocumentRow[];
+	initialMessages: ChatMessage[];
 }
 
 type Tab = "documents" | "preview" | "chat";
 
-export function PreviewContainer({ userId, plan, usage, documents }: PreviewContainerProps) {
+export function PreviewContainer({
+	userId,
+	plan,
+	usage,
+	documents,
+	initialMessages,
+}: PreviewContainerProps) {
 	const t = useT();
 	const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
 	const [selectedPage, setSelectedPage] = useState<number | null>(null);
@@ -88,6 +96,7 @@ export function PreviewContainer({ userId, plan, usage, documents }: PreviewCont
 				plan={plan}
 				usage={usage}
 				scopeName={scopeName}
+				initialMessages={initialMessages}
 				onSourceClick={handleSourceClick}
 				className={cn(tab === "chat" ? "flex" : "hidden", "md:flex")}
 			/>

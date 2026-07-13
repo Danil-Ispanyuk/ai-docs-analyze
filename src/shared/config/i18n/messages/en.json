@@ -93,6 +93,8 @@
 		"removeSuccess": "Document removed.",
 		"removeError": "Couldn't remove the document.",
 		"chatError": "Something went wrong. Please try again.",
+		"chatWelcomeTitle": "Your onboarding & HR assistant",
+		"chatWelcomeBody": "Ask about your company policies, handbook, and onboarding docs. I answer only from the documents you've uploaded and cite the source for every answer — I can't help with topics outside them.",
 		"chatScopedAll": "Searching across all your uploaded documents — ask anything.",
 		"chatScopedDoc": "Searching in \"{name}\" — ask about this document.",
 		"chatPlaceholder": "Ask about your documents…",

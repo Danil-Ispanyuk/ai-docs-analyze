@@ -9,11 +9,13 @@ import type { PlanUsage } from "@/features/billing/service";
 const chat = vi.hoisted(() => ({
 	messages: [] as ChatMessage[],
 	sendMessage: vi.fn(),
+	setMessages: vi.fn(),
 	status: "ready" as string,
 }));
 vi.mock("@ai-sdk/react", () => ({ useChat: () => chat }));
 vi.mock("ai", () => ({ DefaultChatTransport: class {} }));
 vi.mock("@hugeicons/react", () => ({ HugeiconsIcon: () => null }));
+vi.mock("@/features/chat/actions", () => ({ getChatMessages: vi.fn(() => Promise.resolve([])) }));
 
 import { ChatZone } from "./ChatZone";
 
@@ -26,6 +28,7 @@ function render(props: Partial<Parameters<typeof ChatZone>[0]> = {}) {
 			plan="free"
 			usage={noUsage}
 			scopeName="All documents"
+			initialMessages={[]}
 			onSourceClick={() => {}}
 			{...props}
 		/>,

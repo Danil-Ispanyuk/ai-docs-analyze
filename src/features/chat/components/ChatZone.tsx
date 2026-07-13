@@ -12,6 +12,7 @@ import { getPlanLimits, formatTokens, type PlanUsage } from "@/features/billing/
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ChatIcon, SendIcon } from "@/shared/assets/icons";
 import { ChatMessage } from "@/features/chat/types";
+import { getChatMessages } from "@/features/chat/actions";
 import { SourceChips } from "./SourceChips";
 
 export function ChatZone({
@@ -20,6 +21,7 @@ export function ChatZone({
 	usage,
 	className,
 	scopeName,
+	initialMessages,
 	onSourceClick,
 }: {
 	documentId: string | null;
@@ -27,23 +29,51 @@ export function ChatZone({
 	usage: PlanUsage;
 	className?: string;
 	scopeName: string;
+	initialMessages: ChatMessage[];
 	onSourceClick: (documentId: string, page: number | null) => void;
 }) {
 	const t = useT();
 	const [input, setInput] = useState("");
+	const [sessionTokens, setSessionTokens] = useState(0);
+	const [sentThisSession, setSentThisSession] = useState(0);
 	const inputRef = useRef<HTMLInputElement>(null);
 	const messagesEndRef = useRef<HTMLDivElement>(null);
-	const { messages, sendMessage, status } = useChat<ChatMessage>({
+	const { messages, sendMessage, setMessages, status } = useChat<ChatMessage>({
 		transport: new DefaultChatTransport({ api: "/api/chat" }),
+		messages: initialMessages,
 		onError: () => toast.error(t("Workspace.chatError")),
+		onFinish: ({ message }) => {
+			const tokens = message.metadata?.tokens;
+			if (tokens) setSessionTokens((previous) => previous + tokens);
+		},
 	});
 	const isBusy = status === "submitted" || status === "streaming";
 
+	// Load the persisted thread for the selected scope. The starting scope (all
+	// documents) is already hydrated from initialMessages, so skip the first run.
+	const isInitialScope = useRef(true);
+	useEffect(() => {
+		if (isInitialScope.current) {
+			isInitialScope.current = false;
+			return;
+		}
+		let active = true;
+		getChatMessages(documentId).then((loaded) => {
+			if (active) setMessages(loaded);
+		});
+		return () => {
+			active = false;
+		};
+	}, [documentId, setMessages]);
+
 	const limits = getPlanLimits(plan);
-	const questionsThisSession = messages.filter((message) => message.role === "user").length;
 	const isRequestCapped = limits.requestCap !== null;
 
-	const usageUsed = isRequestCapped ? usage.requestsUsed + questionsThisSession : usage.tokensUsed;
+	// Optimistic bump over the server snapshot — only messages sent since page load
+	// (loaded history is already counted in the usage snapshot).
+	const usageUsed = isRequestCapped
+		? usage.requestsUsed + sentThisSession
+		: usage.tokensUsed + sessionTokens;
 	const usageMax = isRequestCapped ? limits.requestCap : limits.tokenBudget;
 	const usagePercent = usageMax ? (usageUsed / usageMax) * 100 : 0;
 	const usageMeterLabel = isRequestCapped
@@ -84,7 +114,11 @@ export function ChatZone({
 				{messages.length === 0 ? (
 					<div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
 						<HugeiconsIcon icon={ChatIcon} className="size-8 text-foreground/30" />
-						<p className="max-w-xs text-sm text-foreground/50">
+						<p className="text-sm font-medium text-foreground/70">
+							{t("Workspace.chatWelcomeTitle")}
+						</p>
+						<p className="max-w-sm text-sm text-foreground/50">{t("Workspace.chatWelcomeBody")}</p>
+						<p className="max-w-xs text-xs text-foreground/40">
 							{documentId
 								? t("Workspace.chatScopedDoc", { name: scopeName })
 								: t("Workspace.chatScopedAll")}
@@ -139,6 +173,7 @@ export function ChatZone({
 						{ text: input },
 						{ body: { documentIds: documentId ? [documentId] : undefined } },
 					);
+					setSentThisSession((previous) => previous + 1);
 					setInput("");
 					inputRef.current?.focus();
 				}}

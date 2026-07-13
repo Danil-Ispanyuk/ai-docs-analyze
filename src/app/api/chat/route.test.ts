@@ -96,6 +96,7 @@ function makeSupabase(config: SupabaseConfig) {
 				order: () => fallbackQuery,
 				limit: () => fallbackQuery,
 				in: () => fallbackQuery,
+				insert: async () => ({ data: null, error: null }),
 				then: (
 					resolve: (value: { data: unknown[]; error: { message: string } | null }) => unknown,
 				) => Promise.resolve({ data: fallbackChunks, error: fallbackError }).then(resolve),

@@ -2,6 +2,7 @@ import { createClient } from "@/shared/config/supabase/server";
 import { LandingContent } from "@/features/landing/components/LandingContent";
 import { PreviewContainer } from "./PreviewContainer";
 import { getCurrentUser } from "@/features/auth/service";
+import { getChatMessages } from "@/features/chat/actions";
 import { PLAN_TYPES } from "@/shared/constants/general";
 import { WorkspaceLayout } from "@/layouts";
 
@@ -31,9 +32,17 @@ export async function WorkspaceContent() {
 	const usage = { tokensUsed: usageRow.tokens_used, requestsUsed: usageRow.requests_used };
 	const isGuest = user.is_anonymous ?? false;
 
+	const initialMessages = await getChatMessages(null);
+
 	return (
 		<WorkspaceLayout isGuest={isGuest} email={user.email ?? ""} plan={plan}>
-			<PreviewContainer documents={data || []} userId={user.id} plan={plan} usage={usage} />
+			<PreviewContainer
+				documents={data || []}
+				userId={user.id}
+				plan={plan}
+				usage={usage}
+				initialMessages={initialMessages}
+			/>
 		</WorkspaceLayout>
 	);
 }

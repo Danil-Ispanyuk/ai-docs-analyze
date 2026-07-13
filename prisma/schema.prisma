@@ -85,7 +85,8 @@ model Document {
   status      String   @default("pending")
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  chunks Chunk[]
+  chunks       Chunk[]
+  chatMessages ChatMessage[]
 
   @@index([userId])
   @@map("documents")
@@ -110,4 +111,23 @@ model Chunk {
   @@index([userId])
   @@index([documentId])
   @@map("chunks")
+}
+
+// Persisted chat history, one row per message. `parts` stores the UIMessage parts
+// as JSON (text + the data-sources citation part) so a thread rehydrates as-is.
+// `document_id` is the thread scope: NULL = the "all documents" thread, otherwise
+// the specific document's thread. FK to auth.users + RLS live in
+// prisma/sql/chatSetup.sql (Prisma can't model the auth schema).
+model ChatMessage {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  documentId String?  @map("document_id") @db.Uuid
+  role       String
+  parts      Json     @db.JsonB
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  document Document? @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([userId, documentId, createdAt])
+  @@map("chat_messages")
 }
