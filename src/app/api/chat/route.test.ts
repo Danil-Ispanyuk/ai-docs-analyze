@@ -6,6 +6,7 @@ const state = vi.hoisted(() => ({
 	writes: [] as { type: string; data?: unknown }[],
 	embedInputs: [] as string[][],
 	executePromise: null as Promise<void> | null,
+	streamText: null as { instructions?: string } | null,
 }));
 
 vi.mock("@/features/auth/service", () => ({
@@ -33,7 +34,10 @@ vi.mock("next/server", () => ({
 
 vi.mock("ai", () => ({
 	convertToModelMessages: async () => [],
-	streamText: () => ({ toUIMessageStream: () => ({}) }),
+	streamText: (options: { instructions?: string }) => {
+		state.streamText = options;
+		return { toUIMessageStream: () => ({}) };
+	},
 	createUIMessageStream: (options: { execute: (arg: { writer: unknown }) => Promise<void> }) => {
 		const writer = {
 			write: (part: { type: string; data?: unknown }) => state.writes.push(part),
@@ -55,6 +59,7 @@ type SupabaseConfig = {
 	match?: ({ document_id: string } & Record<string, unknown>)[];
 	matchError?: { message: string } | null;
 	documents?: string[];
+	inventory?: { name: string; folders: { name: string } | { name: string }[] | null }[];
 	documentStatus?: string | null;
 	documentError?: { message: string } | null;
 	fallbackChunks?: unknown[];
@@ -72,6 +77,7 @@ function makeSupabase(config: SupabaseConfig) {
 		match = [],
 		matchError = null,
 		documents = [],
+		inventory = [],
 		documentStatus = "ready",
 		documentError = null,
 		fallbackChunks = [],
@@ -106,17 +112,27 @@ function makeSupabase(config: SupabaseConfig) {
 			}
 
 			if (table === "documents") {
-				// Chainable so both the all-docs ready query (`.select().eq()`) and the
-				// folder-scope query (`.select().eq().eq()`) resolve to the configured ids.
+				// Chainable so the all-docs ready query (`.select().eq()`), the folder-scope
+				// query (`.select().eq().eq()`), and the inventory query (`.select().order()`)
+				// all resolve. Only the inventory query calls `.order`, so that flag decides
+				// whether the await yields the folder inventory rows or the id list.
+				let ordered = false;
 				const query: Record<string, unknown> = {
 					select: () => query,
 					eq: () => query,
+					order: () => {
+						ordered = true;
+						return query;
+					},
 					maybeSingle: async () => ({
 						data: documentStatus ? { status: documentStatus } : null,
 						error: documentError,
 					}),
-					then: (resolve: (value: { data: { id: string }[]; error: null }) => unknown) =>
-						Promise.resolve({ data: documents.map((id) => ({ id })), error: null }).then(resolve),
+					then: (resolve: (value: { data: unknown[]; error: null }) => unknown) =>
+						Promise.resolve({
+							data: ordered ? inventory : documents.map((id) => ({ id })),
+							error: null,
+						}).then(resolve),
 				};
 				return query;
 			}
@@ -149,6 +165,7 @@ beforeEach(() => {
 	state.writes = [];
 	state.embedInputs = [];
 	state.executePromise = null;
+	state.streamText = null;
 });
 
 describe("POST /api/chat — guards", () => {
@@ -285,6 +302,31 @@ describe("POST /api/chat — happy path", () => {
 			{ documentId: "doc-2", name: "Handbook.pdf", page: 4 },
 			{ documentId: "doc-1", name: "Policy.pdf", page: 1 },
 		]);
+	});
+
+	it("includes the folder inventory in the prompt so it can answer file-location questions", async () => {
+		state.supabase = makeSupabase({
+			documents: ["doc-1"],
+			inventory: [
+				{ name: "Handbook.pdf", folders: { name: "HR Policies" } },
+				{ name: "Onboarding.pdf", folders: null },
+			],
+			match: [
+				{ document_id: "doc-1", name: "Handbook.pdf", content: "a", page: 1, similarity: 0.9 },
+			],
+		});
+
+		const response = await POST(
+			chatRequest({
+				messages: [{ parts: [{ type: "text", text: "Which folder is the handbook in?" }] }],
+			}),
+		);
+		await state.executePromise;
+
+		expect(response.status).toBe(200);
+		const instructions = state.streamText?.instructions ?? "";
+		expect(instructions).toContain('"Handbook.pdf" → folder "HR Policies"');
+		expect(instructions).toContain('"Onboarding.pdf" → not in any folder');
 	});
 
 	it("falls back to leading document chunks when vector search finds no matches", async () => {

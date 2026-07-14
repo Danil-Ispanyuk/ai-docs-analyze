@@ -65,7 +65,7 @@ export function MoveToFolderDialog({
 						variant="ghost"
 						size="icon-sm"
 						aria-label={t("Folders.moveToFolder")}
-						className="shrink-0 text-foreground/40 opacity-0 transition group-hover:opacity-100 hover:text-primary"
+						className="shrink-0 text-foreground/50 transition hover:text-primary"
 						onClick={(event) => event.stopPropagation()}
 					>
 						<HugeiconsIcon icon={FolderIcon} className="size-3.5" />
