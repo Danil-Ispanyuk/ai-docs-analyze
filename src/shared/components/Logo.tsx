@@ -18,11 +18,13 @@ export function Logo({ isGuest, iconOnly = false, className }: LogoProps) {
 
 	const content = (
 		<>
-			<span className="flex size-8 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-chart-4 text-primary-foreground shadow-sm ring-1 ring-white/15 ring-inset">
+			<span className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-chart-4 text-primary-foreground shadow-sm ring-1 ring-white/15 ring-inset">
 				<HugeiconsIcon icon={BrandIcon} className="size-[1.15rem]" />
 			</span>
 			{!iconOnly && (
-				<span className="text-[0.95rem] font-semibold tracking-tight">{t("General.title")}</span>
+				<span className="truncate text-[0.95rem] font-semibold tracking-tight">
+					{t("General.title")}
+				</span>
 			)}
 		</>
 	);
@@ -32,7 +34,7 @@ export function Logo({ isGuest, iconOnly = false, className }: LogoProps) {
 	if (isGuest) {
 		return (
 			<span
-				className={cn("flex cursor-pointer items-center gap-2", className)}
+				className={cn("flex min-w-0 cursor-pointer items-center gap-2", className)}
 				onClick={() => signOut()}
 			>
 				{content}
@@ -41,7 +43,7 @@ export function Logo({ isGuest, iconOnly = false, className }: LogoProps) {
 	}
 
 	return (
-		<Link href="/" className={cn("flex items-center gap-2", className)}>
+		<Link href="/" className={cn("flex min-w-0 items-center gap-2", className)}>
 			{content}
 		</Link>
 	);

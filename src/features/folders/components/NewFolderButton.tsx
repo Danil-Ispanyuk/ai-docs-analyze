@@ -45,14 +45,9 @@ export function NewFolderButton() {
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger
 				render={
-					<Button
-						type="button"
-						variant="ghost"
-						size="icon-sm"
-						aria-label={t("Folders.newFolder")}
-						className="shrink-0 text-foreground/50 hover:text-primary"
-					>
+					<Button type="button" variant="outline" size="sm" className="shrink-0">
 						<HugeiconsIcon icon={FolderAddIcon} className="size-4" />
+						{t("Folders.newFolder")}
 					</Button>
 				}
 			/>

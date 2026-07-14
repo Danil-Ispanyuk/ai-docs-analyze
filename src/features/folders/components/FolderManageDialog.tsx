@@ -99,20 +99,30 @@ export function FolderManageDialog({ folderId, name }: FolderManageDialogProps) 
 						}
 					}}
 				/>
-				<DialogFooter className="sm:justify-between">
+				<DialogFooter className="flex-col sm:flex-row sm:items-center sm:justify-between">
 					<Button
 						type="button"
 						variant="ghost"
 						onClick={handleDelete}
 						disabled={isPending}
-						className="text-destructive hover:text-destructive"
+						className="w-full justify-center text-destructive hover:text-destructive sm:w-auto sm:justify-start"
 					>
 						<HugeiconsIcon icon={DeleteIcon} className="me-1.5 size-4" />
 						{t("Folders.delete")}
 					</Button>
-					<div className="flex gap-2 sm:justify-end">
-						<DialogClose render={<Button variant="outline">{t("Folders.cancel")}</Button>} />
-						<Button onClick={handleRename} disabled={isPending || !value.trim()}>
+					<div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+						<DialogClose
+							render={
+								<Button variant="outline" className="w-full sm:w-auto">
+									{t("Folders.cancel")}
+								</Button>
+							}
+						/>
+						<Button
+							onClick={handleRename}
+							disabled={isPending || !value.trim()}
+							className="w-full sm:w-auto"
+						>
 							{t("Folders.save")}
 						</Button>
 					</div>

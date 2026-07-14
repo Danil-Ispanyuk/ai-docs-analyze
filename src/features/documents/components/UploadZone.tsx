@@ -197,7 +197,16 @@ export function UploadZone({
 			)}
 		>
 			<div className="flex items-center justify-between gap-2">
-				<h2 className="text-sm font-medium text-foreground/80">{t("Workspace.documentsTitle")}</h2>
+				<div className="flex items-center gap-2">
+					<h2 className="text-sm font-medium text-foreground/80">
+						{t("Workspace.documentsTitle")}
+					</h2>
+					{documents.length > 0 && (
+						<span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-foreground/60">
+							{documents.length}
+						</span>
+					)}
+				</div>
 				<NewFolderButton />
 			</div>
 
@@ -299,7 +308,7 @@ export function UploadZone({
 					<p className="text-xs">{t("Workspace.documentsEmpty")}</p>
 				</div>
 			) : (
-				<ul className="-mx-1 flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto px-1">
+				<ul className="-mx-1 flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto [mask-image:linear-gradient(to_bottom,black_calc(100%-1rem),transparent)] px-1 pb-4">
 					<li>
 						<div
 							role="button"

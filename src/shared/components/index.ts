@@ -1,3 +1,4 @@
+export { AccountMenu } from "./AccountMenu";
 export { Header } from "./Header";
 export { LocaleSwitcher } from "./LocaleSwitcher";
 export { Logo } from "./Logo";

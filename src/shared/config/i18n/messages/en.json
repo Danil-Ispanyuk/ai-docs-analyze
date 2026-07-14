@@ -53,6 +53,7 @@
 	"Workspace": {
 		"greeting": "Hello, {name}",
 		"signedInAsGuest": "Signed in as Guest",
+		"accountMenu": "Account menu",
 		"guestSession": "Guest session",
 		"logout": "Log out",
 		"documentsTitle": "Documents",

@@ -53,6 +53,7 @@
 	"Workspace": {
 		"greeting": "مرحبًا، {name}",
 		"signedInAsGuest": "مسجّل الدخول كضيف",
+		"accountMenu": "قائمة الحساب",
 		"guestSession": "جلسة ضيف",
 		"logout": "تسجيل الخروج",
 		"documentsTitle": "المستندات",

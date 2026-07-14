@@ -5,12 +5,17 @@ import { signOut } from "@/features/auth/actions";
 import { useT } from "@/shared/config/i18n";
 import { Button } from "@/shared/ui/button";
 
-export function LogoutButton() {
+export function LogoutButton({ className }: { className?: string }) {
 	const t = useT();
 	const [isPending, startTransition] = useTransition();
 
 	return (
-		<Button variant="outline" disabled={isPending} onClick={() => startTransition(() => signOut())}>
+		<Button
+			variant="outline"
+			className={className}
+			disabled={isPending}
+			onClick={() => startTransition(() => signOut())}
+		>
 			{isPending && (
 				<span
 					className="me-2 size-4 animate-spin rounded-full border-2 border-current border-t-transparent"
