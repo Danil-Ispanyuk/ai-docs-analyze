@@ -112,10 +112,6 @@ function makeSupabase(config: SupabaseConfig) {
 			}
 
 			if (table === "documents") {
-				// Chainable so the all-docs ready query (`.select().eq()`), the folder-scope
-				// query (`.select().eq().eq()`), and the inventory query (`.select().order()`)
-				// all resolve. Only the inventory query calls `.order`, so that flag decides
-				// whether the await yields the folder inventory rows or the id list.
 				let ordered = false;
 				const query: Record<string, unknown> = {
 					select: () => query,
@@ -265,7 +261,6 @@ describe("POST /api/chat — happy path", () => {
 		await state.executePromise;
 
 		expect(response.status).toBe(200);
-		// A folder resolves to its documents, so retrieval is balanced per document.
 		expect(matchArgs).toMatchObject({ match_count: 6, match_threshold: 0.12 });
 		const sourcesPart = state.writes.find((part) => part.type === "data-sources");
 		expect(sourcesPart?.data).toEqual([
@@ -295,7 +290,6 @@ describe("POST /api/chat — happy path", () => {
 		await state.executePromise;
 
 		expect(response.status).toBe(200);
-		// One scoped match_chunks call per document, so neither can crowd the other out.
 		expect(calls).toEqual([["doc-1"], ["doc-2"]]);
 		const sourcesPart = state.writes.find((part) => part.type === "data-sources");
 		expect(sourcesPart?.data).toEqual([

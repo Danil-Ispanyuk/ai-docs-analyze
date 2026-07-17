@@ -7,7 +7,7 @@ import { renderWithIntl } from "@/shared/test/intl";
 const actions = vi.hoisted(() => ({ signUp: vi.fn() }));
 vi.mock("@/features/auth/actions", () => ({ signUp: actions.signUp }));
 
-import { SignUpForm } from "./SignUpForm";
+import { SignUpForm } from "../components/SignUpForm";
 
 const submit = () => document.querySelector('button[type="submit"]') as HTMLButtonElement;
 const fill = async () => {

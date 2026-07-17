@@ -32,7 +32,7 @@ vi.mock("@/features/folders/actions", () => ({
 	moveDocumentToFolder: vi.fn(),
 }));
 
-import { UploadZone } from "./UploadZone";
+import { UploadZone } from "../components/UploadZone";
 
 function makeDoc(overrides: Partial<DocumentRow> = {}): DocumentRow {
 	return {

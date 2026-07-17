@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { PLAN_LIMITS, getPlanLimits, formatTokens, formatStorage } from "./service";
+import { PLAN_LIMITS, getPlanLimits, formatTokens, formatStorage } from "../service";
 
 describe("getPlanLimits", () => {
 	it("returns the matching limits for a known plan", () => {

@@ -9,8 +9,6 @@ import { Menu, MenuContent, MenuItem, MenuLinkItem, MenuTrigger } from "@/shared
 import { HugeiconsIcon } from "@hugeicons/react";
 import { MoreIcon } from "@/shared/assets/icons";
 
-// Compact account menu for narrow screens — collapses the Profile link and the
-// Log out action (shown inline on ≥sm) so the header fits on a phone.
 export function AccountMenu({ className }: { className?: string }) {
 	const t = useT();
 	const [isPending, startTransition] = useTransition();

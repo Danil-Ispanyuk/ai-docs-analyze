@@ -17,7 +17,7 @@ vi.mock("ai", () => ({ DefaultChatTransport: class {} }));
 vi.mock("@hugeicons/react", () => ({ HugeiconsIcon: () => null }));
 vi.mock("@/features/chat/actions", () => ({ getChatMessages: vi.fn(() => Promise.resolve([])) }));
 
-import { ChatZone } from "./ChatZone";
+import { ChatZone } from "../components/ChatZone";
 
 const noUsage: PlanUsage = { tokensUsed: 0, requestsUsed: 0 };
 

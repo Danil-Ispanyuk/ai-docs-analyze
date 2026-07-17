@@ -5,7 +5,7 @@ import {
 	forgotPasswordSchema,
 	resetPasswordSchema,
 	convertAccountSchema,
-} from "./validators";
+} from "../validators";
 
 describe("signInSchema", () => {
 	it("accepts a valid email + non-empty password", () => {

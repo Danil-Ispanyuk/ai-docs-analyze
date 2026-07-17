@@ -27,8 +27,6 @@ export function RemoveDocumentModal({
 	const t = useT();
 	const [open, setOpen] = useState(false);
 
-	// Close on confirm so the button can't be clicked again — repeated clicks used
-	// to queue many delete calls (and a stale second call raised "Cannot coerce…").
 	const handleConfirm = () => {
 		onSubmit();
 		setOpen(false);

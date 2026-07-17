@@ -20,8 +20,6 @@ const RATE_LIMIT_MAX = 10;
 const RATE_LIMIT_WINDOW_SECONDS = 60;
 const MATCH_COUNT = 12;
 const MATCH_THRESHOLD = 0.12;
-// Only the last N messages of the thread are sent to the model — the full thread
-// still lives in the UI/DB, but old turns don't keep inflating token cost.
 const MAX_HISTORY_MESSAGES = 12;
 
 type Matched = {
@@ -54,10 +52,6 @@ function getFolderName(folders: InventoryRow["folders"]): string | null {
 	return folders?.name ?? null;
 }
 
-// A compact "which folder is each file in" listing for the signed-in user (RLS-scoped
-// to their own rows). Lets the assistant answer organizational questions — where a
-// document lives, what's in a folder — from metadata, separate from the content chunks
-// used for Q&A. Returns "" when the user has no documents.
 async function getDocumentInventory(
 	supabase: Awaited<ReturnType<typeof createClient>>,
 ): Promise<string> {
@@ -76,9 +70,6 @@ async function getDocumentInventory(
 		.join("\n");
 }
 
-// targetIds: null = every document; an array = the exact scope (a single document
-// or a folder's documents). An empty array is an empty scope (e.g. an empty folder)
-// and retrieves nothing.
 async function getFallbackChunks(
 	supabase: Awaited<ReturnType<typeof createClient>>,
 	targetIds: string[] | null,
@@ -108,15 +99,6 @@ async function getFallbackChunks(
 	}));
 }
 
-// Balanced retrieval: when a scope spans multiple documents (all documents, or a
-// folder), give each document its own quota so one document's chunks can't crowd the
-// others out of the global top-k. The similarity threshold still drops documents
-// irrelevant to a specific question, so this only broadens answers that genuinely
-// span multiple documents.
-//
-// targetIds: null = every ready document; an array = the exact scope (a single
-// document or a folder's documents). An empty array is an empty scope and retrieves
-// nothing.
 async function retrieveChunks(
 	supabase: Awaited<ReturnType<typeof createClient>>,
 	queryEmbedding: number[],
@@ -246,8 +228,6 @@ export async function POST(req: Request) {
 			.trim() ?? "";
 	if (!question) return new Response("Question is required.", { status: 400 });
 
-	// Resolve the retrieval scope (RM-7): a folder → its ready documents; a single
-	// document → itself; neither → all documents (targetIds = null).
 	let targetIds: string[] | null;
 	if (folderId) {
 		const { data: folderDocs } = await supabase
@@ -274,12 +254,9 @@ export async function POST(req: Request) {
 		targetIds = null;
 	}
 
-	// Thread persistence key, orthogonal: folder thread, single-document thread, or
-	// the "all documents" thread (both null).
 	const scopeDocumentId = folderId ? null : (documentId ?? null);
 	const scopeFolderId = folderId ?? null;
 
-	// Persist the incoming user message (only the new one — history is already stored).
 	await supabase.from("chat_messages").insert({
 		user_id: user.id,
 		document_id: scopeDocumentId,
@@ -324,9 +301,6 @@ export async function POST(req: Request) {
 	}
 	const sources: Source[] = [...sourcesByKey.values()];
 
-	// Group the context by document so each file reads as a distinct unit — otherwise
-	// a document with more retrieved chunks visually dominates and the model may
-	// summarize only that one when asked about all of them.
 	const chunksByDocument = new Map<string, { name: string; items: Matched[] }>();
 	for (const chunk of chunks) {
 		const entry = chunksByDocument.get(chunk.document_id) ?? { name: chunk.name, items: [] };
@@ -393,7 +367,6 @@ export async function POST(req: Request) {
 						totalUsage?.totalTokens ??
 							(totalUsage?.inputTokens ?? 0) + (totalUsage?.outputTokens ?? 0),
 					);
-					// Persist the assistant reply so the thread rehydrates on reload.
 					await supabase.from("chat_messages").insert({
 						user_id: user.id,
 						document_id: scopeDocumentId,

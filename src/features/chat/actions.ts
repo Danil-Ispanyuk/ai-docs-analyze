@@ -4,10 +4,6 @@ import { createClient } from "@/shared/config/supabase/server";
 import { getCurrentUser } from "@/features/auth/service";
 import type { ChatMessage, ChatScope } from "@/features/chat/types";
 
-// Loads the persisted history for one thread (scope). Scope is orthogonal (RM-7):
-// both null = the "all documents" thread; documentId set = that document's thread;
-// folderId set = that folder's thread. RLS keeps it to the signed-in user; the
-// explicit user_id filter also keeps the query on its index.
 export async function getChatMessages(scope: ChatScope): Promise<ChatMessage[]> {
 	const supabase = await createClient();
 	const user = await getCurrentUser();
@@ -37,8 +33,6 @@ export async function getChatMessages(scope: ChatScope): Promise<ChatMessage[]> 
 	})) as ChatMessage[];
 }
 
-// Deletes every message in one thread (scope) for the signed-in user. RLS + the
-// explicit user_id filter keep it to their own rows.
 export async function clearChatMessages(scope: ChatScope): Promise<{ error?: string }> {
 	const supabase = await createClient();
 	const user = await getCurrentUser();

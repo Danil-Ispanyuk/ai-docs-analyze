@@ -92,8 +92,6 @@ export async function deleteAccount(values: DeleteAccountInput): Promise<Profile
 		return { error: "Not authenticated" };
 	}
 
-	// Re-authenticate: confirm the caller knows the account password before we
-	// destroy anything.
 	const { error: verifyError } = await supabase.auth.signInWithPassword({
 		email: user.email,
 		password: parsed.data.password,
@@ -102,9 +100,6 @@ export async function deleteAccount(values: DeleteAccountInput): Promise<Profile
 		return { error: t("Profile.deletePasswordIncorrect") };
 	}
 
-	// Best-effort: cancel any live Stripe subscription so deleting the account
-	// doesn't leave a dangling, still-billing subscription behind. Non-blocking —
-	// a failure here must not stop the deletion.
 	const { data: profile } = await supabase
 		.from("profiles")
 		.select("stripe_subscription_id")
@@ -138,8 +133,6 @@ export async function deleteAccount(values: DeleteAccountInput): Promise<Profile
 		}
 	}
 
-	// Privileged, self-scoped deletion (SECURITY DEFINER, acts on auth.uid()):
-	// cascades every user table after file bytes have been removed via Storage API.
 	const { error: deleteError } = await supabase.rpc("delete_current_user");
 	if (deleteError) {
 		return { error: deleteError.message };

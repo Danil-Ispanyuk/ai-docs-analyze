@@ -29,8 +29,6 @@ export function Logo({ isGuest, iconOnly = false, className }: LogoProps) {
 		</>
 	);
 
-	// Guests have no persisted workspace to return to — the logo ends their session.
-	// Signed-in users get a plain link back to the workspace (e.g. from /profile).
 	if (isGuest) {
 		return (
 			<span

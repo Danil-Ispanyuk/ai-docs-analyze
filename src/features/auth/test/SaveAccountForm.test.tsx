@@ -9,7 +9,7 @@ vi.mock("@/features/auth/actions", () => ({
 	convertGuestAccount: actions.convertGuestAccount,
 }));
 
-import { SaveAccountForm } from "./SaveAccountForm";
+import { SaveAccountForm } from "../components/SaveAccountForm";
 
 const submit = () => document.querySelector('button[type="submit"]') as HTMLButtonElement;
 const fill = async () => {

@@ -18,7 +18,7 @@ vi.mock("@/shared/config/supabase/server", () => ({
 	}),
 }));
 
-import { removeDocument } from "./actions";
+import { removeDocument } from "../actions";
 
 describe("removeDocument", () => {
 	beforeEach(() => {

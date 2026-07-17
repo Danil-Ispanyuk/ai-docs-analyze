@@ -87,13 +87,9 @@ export function UploadZone({
 	};
 
 	const handleFiles = (fileList: File[]) => {
-		// Validate against the plan limits while accumulating, so a batch can't slip
-		// past the file-count or storage cap one file at a time.
 		let projectedBytes = usedBytes;
 		let projectedCount = documents.length;
 		const accepted: File[] = [];
-		// Skip files whose name already exists (case-insensitive), including duplicates
-		// within the same batch — matched names are added as they are accepted.
 		const seenNames = new Set(documents.map((document) => document.name.toLowerCase()));
 
 		for (const file of fileList) {
@@ -156,9 +152,6 @@ export function UploadZone({
 	};
 
 	const handleRemove = (id: string) => {
-		// Removing the last document leaves the "all documents" thread orphaned — it
-		// has no document/folder FK to cascade on — so it would resurface (with old
-		// messages) on the next upload. Clear it here so a fresh upload starts empty.
 		const isLastDocument = documents.length === 1;
 		startRemove(async () => {
 			const result = await removeDocument(id);

@@ -41,10 +41,6 @@ export function PreviewContainer({
 	const [selectedPage, setSelectedPage] = useState<number | null>(null);
 	const [tab, setTab] = useState<Tab>("documents");
 
-	// Derive the effective scope during render so a scope whose target disappeared
-	// (document removed, folder deleted) transparently falls back to "all documents"
-	// — no setState-in-effect needed. Any user action replaces `scope` with a fresh
-	// valid value, so the stale value never resurfaces.
 	const documentExists =
 		!scope.documentId || documents.some((document) => document.id === scope.documentId);
 	const folderExists = !scope.folderId || folders.some((folder) => folder.id === scope.folderId);

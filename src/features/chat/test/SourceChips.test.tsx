@@ -2,7 +2,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { SourceChips } from "./SourceChips";
+import { SourceChips } from "../components/SourceChips";
 import type { Source } from "@/features/chat/types";
 
 vi.mock("@/shared/config/i18n", () => ({

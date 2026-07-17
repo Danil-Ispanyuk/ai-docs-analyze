@@ -34,7 +34,6 @@ export function DeleteAccountButton({ email }: DeleteAccountButtonProps) {
 	const handleDelete = () => {
 		if (!canDelete) return;
 		startTransition(async () => {
-			// On success the action redirects to "/"; only an error returns here.
 			const result = await deleteAccount({ password });
 			if (result?.error) toast.error(result.error);
 		});

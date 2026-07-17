@@ -7,7 +7,7 @@ import { renderWithIntl } from "@/shared/test/intl";
 const actions = vi.hoisted(() => ({ resetPassword: vi.fn() }));
 vi.mock("@/features/auth/actions", () => ({ resetPassword: actions.resetPassword }));
 
-import { ResetPasswordForm } from "./ResetPasswordForm";
+import { ResetPasswordForm } from "../components/ResetPasswordForm";
 
 const submit = () => document.querySelector('button[type="submit"]') as HTMLButtonElement;
 

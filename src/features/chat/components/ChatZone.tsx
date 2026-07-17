@@ -70,34 +70,10 @@ export function ChatZone({
 		});
 	};
 
-	// Load the persisted thread for the selected scope. The starting scope (all
-	// documents) is already hydrated from initialMessages, so skip the first run.
 	const isInitialScope = useRef(true);
-	useEffect(() => {
-		if (isInitialScope.current) {
-			isInitialScope.current = false;
-			return;
-		}
-		let active = true;
-		getChatMessages(scope).then((loaded) => {
-			if (active) setMessages(loaded);
-		});
-		return () => {
-			active = false;
-		};
-	}, [scope, setMessages]);
-
-	// Tick once a minute so the "limits reset in …" countdown stays current.
-	useEffect(() => {
-		const timer = setInterval(() => setNow(Date.now()), 60_000);
-		return () => clearInterval(timer);
-	}, []);
-
 	const limits = getPlanLimits(plan);
 	const isRequestCapped = limits.requestCap !== null;
 
-	// Optimistic bump over the server snapshot — only messages sent since page load
-	// (loaded history is already counted in the usage snapshot).
 	const usageUsed = isRequestCapped
 		? usage.requestsUsed + sentThisSession
 		: usage.tokensUsed + sessionTokens;
@@ -128,6 +104,25 @@ export function ChatZone({
 			? last.parts.map((part) => (part.type === "text" ? part.text : "")).join("")
 			: "";
 	const showTyping = isBusy && (last?.role !== "assistant" || lastAssistantText.length === 0);
+
+	useEffect(() => {
+		if (isInitialScope.current) {
+			isInitialScope.current = false;
+			return;
+		}
+		let active = true;
+		getChatMessages(scope).then((loaded) => {
+			if (active) setMessages(loaded);
+		});
+		return () => {
+			active = false;
+		};
+	}, [scope, setMessages]);
+
+	useEffect(() => {
+		const timer = setInterval(() => setNow(Date.now()), 60_000);
+		return () => clearInterval(timer);
+	}, []);
 
 	useEffect(() => {
 		messagesEndRef.current?.scrollIntoView({ block: "end" });

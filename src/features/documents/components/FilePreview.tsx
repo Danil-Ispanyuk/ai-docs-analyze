@@ -61,8 +61,6 @@ export function FilePreview({ documentId, name, page, status }: FilePreviewProps
 		);
 	}
 
-	// A document whose ingestion failed has no chunks and can't be previewed or
-	// chatted with — show a clear message (with retry/remove in the list) instead.
 	if (status === DOCUMENT_STATUSES.ERROR) {
 		return (
 			<div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center">

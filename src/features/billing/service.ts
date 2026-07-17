@@ -48,11 +48,8 @@ export function getPlanLimits(plan: string | null | undefined): PlanLimits {
 	return PLAN_LIMITS[(plan ?? DEFAULT_PLAN) as Plan];
 }
 
-// Usage counters reset on a rolling window aligned to UTC-epoch boundaries — this
-// mirrors usage_period_start() in prisma/sql/billingSetup.sql. Keep the two in sync.
 export const USAGE_RESET_HOURS = 5;
 
-// Epoch ms of the next reset boundary after `nowMs`.
 export function getNextUsageResetMs(nowMs: number = Date.now()): number {
 	const windowMs = USAGE_RESET_HOURS * 60 * 60 * 1000;
 	return Math.floor(nowMs / windowMs) * windowMs + windowMs;

@@ -11,7 +11,7 @@ vi.mock("@/features/auth/actions", () => ({
 }));
 vi.mock("@/shared/lib/toast", () => ({ toast: toastSpy }));
 
-import { ForgotPasswordForm } from "./ForgotPasswordForm";
+import { ForgotPasswordForm } from "../components/ForgotPasswordForm";
 
 const submit = () => document.querySelector('button[type="submit"]') as HTMLButtonElement;
 

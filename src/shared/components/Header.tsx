@@ -42,7 +42,6 @@ export function Header({ isGuest, email, fullName, plan }: HeaderProps) {
 				</span>
 				{!isGuest && (
 					<>
-						{/* Inline on ≥sm; collapsed into a compact menu on phones. */}
 						<Button
 							variant="ghost"
 							size="sm"

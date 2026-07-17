@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { UsageMeter } from "./UsageMeter";
+import { UsageMeter } from "../components/UsageMeter";
 
 function getBar(container: HTMLElement): HTMLElement {
 	const bar = container.querySelector<HTMLElement>("[style*='width']");
