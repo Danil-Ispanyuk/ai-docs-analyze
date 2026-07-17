@@ -77,7 +77,7 @@ export async function requestPasswordReset(values: ForgotPasswordInput): Promise
 	});
 
 	const t = await getTranslations();
-	return { message: t("Auth.resetLinkSent") };
+	return { message: t("auth.resetLinkSent") };
 }
 
 export async function resetPassword(values: ResetPasswordInput): Promise<AuthResult> {

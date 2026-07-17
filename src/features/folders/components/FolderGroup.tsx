@@ -30,7 +30,7 @@ export function FolderGroup({ folder, isActive, count, onSelect, children }: Fol
 			>
 				<button
 					type="button"
-					aria-label={open ? t("Folders.collapse") : t("Folders.expand")}
+					aria-label={open ? t("folders.collapse") : t("folders.expand")}
 					onClick={() => setOpen((previous) => !previous)}
 					className="shrink-0 rounded-md p-0.5 text-foreground/40 outline-none hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50"
 				>

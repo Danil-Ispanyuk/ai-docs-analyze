@@ -22,7 +22,7 @@ export function LogoutButton({ className }: { className?: string }) {
 					aria-hidden
 				/>
 			)}
-			{t("Workspace.logout")}
+			{t("workspace.logout")}
 		</Button>
 	);
 }

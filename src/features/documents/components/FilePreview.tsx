@@ -56,7 +56,7 @@ export function FilePreview({ documentId, name, page, status }: FilePreviewProps
 		return (
 			<div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center text-foreground/40">
 				<HugeiconsIcon icon={DocumentIcon} className="size-8" />
-				<p className="text-sm">{t("Workspace.previewEmpty")}</p>
+				<p className="text-sm">{t("workspace.previewEmpty")}</p>
 			</div>
 		);
 	}
@@ -65,8 +65,8 @@ export function FilePreview({ documentId, name, page, status }: FilePreviewProps
 		return (
 			<div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center">
 				<HugeiconsIcon icon={InformationCircleIcon} className="size-8 text-destructive/70" />
-				<p className="text-sm font-medium text-foreground/70">{t("Workspace.previewErrored")}</p>
-				<p className="max-w-xs text-sm text-foreground/50">{t("Workspace.previewErroredBody")}</p>
+				<p className="text-sm font-medium text-foreground/70">{t("workspace.previewErrored")}</p>
+				<p className="max-w-xs text-sm text-foreground/50">{t("workspace.previewErroredBody")}</p>
 			</div>
 		);
 	}
@@ -88,7 +88,7 @@ export function FilePreview({ documentId, name, page, status }: FilePreviewProps
 			key={result.url}
 			url={result.url}
 			page={page}
-			label={name ?? t("Workspace.previewTitle")}
+			label={name ?? t("workspace.previewTitle")}
 			onLoadError={handleLoadError}
 		/>
 	);

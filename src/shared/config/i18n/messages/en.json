@@ -1,5 +1,5 @@
 {
-	"Auth": {
+	"auth": {
 		"subtitle": "Sign in to continue",
 		"emailLabel": "Email",
 		"fullNameLabel": "Full Name",
@@ -29,13 +29,13 @@
 		"saveAccountDescription": "Add an email and password to keep your documents after your guest session ends.",
 		"savingAccount": "Saving…"
 	},
-	"General": {
+	"general": {
 		"title": "AI Docs Analyze"
 	},
-	"Locale": {
+	"locale": {
 		"switchLanguage": "Switch language"
 	},
-	"Landing": {
+	"landing": {
 		"eyebrow": "HR & onboarding assistant",
 		"title": "Chat with your company's documents",
 		"subtitle": "Upload a policy or handbook and ask questions in plain language — every answer cites the exact file and page, and says \"I don't know\" when it's not in your documents.",
@@ -50,7 +50,7 @@
 		"feature3Title": "Private by design",
 		"feature3Body": "Your documents stay yours — isolated per account with row-level security."
 	},
-	"Workspace": {
+	"workspace": {
 		"greeting": "Hello, {name}",
 		"signedInAsGuest": "Signed in as Guest",
 		"accountMenu": "Account menu",
@@ -131,7 +131,7 @@
 			}
 		}
 	},
-	"Folders": {
+	"folders": {
 		"newFolder": "New folder",
 		"namePlaceholder": "Folder name",
 		"create": "Create",
@@ -152,7 +152,7 @@
 		"emptyFolder": "No documents in this folder yet.",
 		"unfiled": "Unfiled"
 	},
-	"Profile": {
+	"profile": {
 		"title": "Profile",
 		"back": "Back to workspace",
 		"accountTitle": "Account",

@@ -45,7 +45,7 @@ export function SourceChips({
 		return () => document.removeEventListener("mousedown", handleOutsideClick);
 	}, [openDocumentId]);
 
-	const pageLabel = (page: number | null) => (page ? t("Workspace.sourcePage", { page }) : "");
+	const pageLabel = (page: number | null) => (page ? t("workspace.sourcePage", { page }) : "");
 
 	const chipClass =
 		"rounded-full border border-border bg-background px-2 py-0.5 text-xs text-foreground/60 transition-colors hover:border-primary hover:text-foreground";
@@ -69,12 +69,12 @@ export function SourceChips({
 							<>
 								<button
 									type="button"
-									aria-label={t("Workspace.morePagesLabel")}
+									aria-label={t("workspace.morePagesLabel")}
 									aria-expanded={isOpen}
 									onClick={() => setOpenDocumentId(isOpen ? null : group.documentId)}
 									className={cn(chipClass, "ms-1")}
 								>
-									{t("Workspace.morePages", { count: extraPages.length })}
+									{t("workspace.morePages", { count: extraPages.length })}
 								</button>
 								{isOpen && (
 									<div className="absolute start-0 top-full z-10 mt-1 flex min-w-[7rem] flex-col gap-0.5 rounded-lg border border-border bg-background p-1 shadow-md">

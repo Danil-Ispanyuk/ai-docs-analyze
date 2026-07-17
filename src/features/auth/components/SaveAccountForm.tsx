@@ -31,19 +31,19 @@ export function SaveAccountForm() {
 	return (
 		<Form {...form}>
 			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
-				<p className="text-sm text-foreground/60">{t("Auth.saveAccountDescription")}</p>
+				<p className="text-sm text-foreground/60">{t("auth.saveAccountDescription")}</p>
 
 				<FormField
 					control={form.control}
 					name="fullName"
 					render={({ field }) => (
 						<FormItem>
-							<FormLabel>{t("Auth.fullNameLabel")}</FormLabel>
+							<FormLabel>{t("auth.fullNameLabel")}</FormLabel>
 							<FormControl>
 								<Input
 									type="text"
 									autoComplete="name"
-									placeholder={t("Auth.fullNamePlaceholder")}
+									placeholder={t("auth.fullNamePlaceholder")}
 									{...field}
 								/>
 							</FormControl>
@@ -57,12 +57,12 @@ export function SaveAccountForm() {
 					name="email"
 					render={({ field }) => (
 						<FormItem>
-							<FormLabel>{t("Auth.emailLabel")}</FormLabel>
+							<FormLabel>{t("auth.emailLabel")}</FormLabel>
 							<FormControl>
 								<Input
 									type="email"
 									autoComplete="email"
-									placeholder={t("Auth.emailPlaceholder")}
+									placeholder={t("auth.emailPlaceholder")}
 									{...field}
 								/>
 							</FormControl>
@@ -76,7 +76,7 @@ export function SaveAccountForm() {
 					name="password"
 					render={({ field }) => (
 						<FormItem>
-							<FormLabel>{t("Auth.passwordLabel")}</FormLabel>
+							<FormLabel>{t("auth.passwordLabel")}</FormLabel>
 							<FormControl>
 								<Input type="password" autoComplete="new-password" {...field} />
 							</FormControl>
@@ -98,7 +98,7 @@ export function SaveAccountForm() {
 							aria-hidden
 						/>
 					)}
-					{isPending ? t("Auth.savingAccount") : t("Auth.saveAccount")}
+					{isPending ? t("auth.savingAccount") : t("auth.saveAccount")}
 				</Button>
 			</form>
 		</Form>

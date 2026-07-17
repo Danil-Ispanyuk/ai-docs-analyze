@@ -26,10 +26,10 @@ export function Header({ isGuest, email, fullName, plan }: HeaderProps) {
 				{isGuest ? (
 					<>
 						<Button variant="ghost" size="sm" render={<Link href="/sign-in" />}>
-							{t("Auth.signIn")}
+							{t("auth.signIn")}
 						</Button>
 						<Button size="sm" render={<Link href="/save-account" />}>
-							{t("Auth.saveAccount")}
+							{t("auth.saveAccount")}
 						</Button>
 					</>
 				) : (
@@ -37,8 +37,8 @@ export function Header({ isGuest, email, fullName, plan }: HeaderProps) {
 				)}
 				<span className="hidden text-sm text-foreground/60 sm:inline">
 					{isGuest
-						? t("Workspace.guestSession")
-						: t("Workspace.greeting", { name: fullName?.trim() || email })}
+						? t("workspace.guestSession")
+						: t("workspace.greeting", { name: fullName?.trim() || email })}
 				</span>
 				{!isGuest && (
 					<>
@@ -48,7 +48,7 @@ export function Header({ isGuest, email, fullName, plan }: HeaderProps) {
 							className="hidden sm:inline-flex"
 							render={<Link href="/profile" />}
 						>
-							{t("Workspace.profile")}
+							{t("workspace.profile")}
 						</Button>
 						<LogoutButton className="hidden sm:inline-flex" />
 						<AccountMenu className="sm:hidden" />

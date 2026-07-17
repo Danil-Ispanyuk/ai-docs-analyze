@@ -80,7 +80,7 @@ export function UploadZone({
 
 		const result = await createDocument({ name: file.name, storagePath });
 		if (result.error || !result.documentId) {
-			toast.error(result.error ?? t("Workspace.uploadError"));
+			toast.error(result.error ?? t("workspace.uploadError"));
 			return null;
 		}
 		return result.documentId;
@@ -94,24 +94,24 @@ export function UploadZone({
 
 		for (const file of fileList) {
 			if (file.type !== "application/pdf") {
-				toast.error(t("Workspace.fileTypeError"));
+				toast.error(t("workspace.fileTypeError"));
 				continue;
 			}
 			if (seenNames.has(file.name.toLowerCase())) {
-				toast.error(t("Workspace.duplicateFile", { name: file.name }));
+				toast.error(t("workspace.duplicateFile", { name: file.name }));
 				continue;
 			}
 			if (limits.maxFileSize !== null && file.size > limits.maxFileSize) {
 				const maxFileSizeMb = Math.round(limits.maxFileSize / (1024 * 1024));
-				toast.error(t("Workspace.fileSizeError", { size: maxFileSizeMb }));
+				toast.error(t("workspace.fileSizeError", { size: maxFileSizeMb }));
 				continue;
 			}
 			if (limits.maxFiles !== null && projectedCount >= limits.maxFiles) {
-				toast.error(t("Workspace.uploadLimitReached"));
+				toast.error(t("workspace.uploadLimitReached"));
 				break;
 			}
 			if (projectedBytes + file.size > limits.storageLimit) {
-				toast.error(t("Workspace.storageError", { size: formatStorage(limits.storageLimit) }));
+				toast.error(t("workspace.storageError", { size: formatStorage(limits.storageLimit) }));
 				break;
 			}
 			accepted.push(file);
@@ -130,7 +130,7 @@ export function UploadZone({
 			}
 			router.refresh();
 			if (documentIds.length) {
-				toast.success(t("Workspace.uploadQueued"));
+				toast.success(t("workspace.uploadQueued"));
 				documentIds.forEach(runIngestion);
 			}
 		});
@@ -138,7 +138,7 @@ export function UploadZone({
 
 	const runIngestion = (documentId: string) => {
 		ingestDocument(documentId).then((res) => {
-			if (res?.error) toast.error(t("Workspace.uploadError"));
+			if (res?.error) toast.error(t("workspace.uploadError"));
 			router.refresh();
 		});
 	};
@@ -146,7 +146,7 @@ export function UploadZone({
 	const handleReingest = (id: string) => {
 		startReingest(async () => {
 			const res = await ingestDocument(id);
-			if (res?.error) toast.error(t("Workspace.uploadError"));
+			if (res?.error) toast.error(t("workspace.uploadError"));
 			router.refresh();
 		});
 	};
@@ -164,7 +164,7 @@ export function UploadZone({
 			}
 			if (scope.documentId === id) onSelectAll();
 			router.refresh();
-			toast.success(t("Workspace.removeSuccess"));
+			toast.success(t("workspace.removeSuccess"));
 		});
 	};
 
@@ -192,7 +192,7 @@ export function UploadZone({
 			<div className="flex items-center justify-between gap-2">
 				<div className="flex items-center gap-2">
 					<h2 className="text-sm font-medium text-foreground/80">
-						{t("Workspace.documentsTitle")}
+						{t("workspace.documentsTitle")}
 					</h2>
 					{documents.length > 0 && (
 						<span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-foreground/60">
@@ -239,44 +239,44 @@ export function UploadZone({
 							className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent"
 							aria-hidden
 						/>
-						{t("Workspace.uploading")}
+						{t("workspace.uploading")}
 					</span>
 				) : atFileLimit ? (
 					<>
 						<HugeiconsIcon icon={InformationCircleIcon} className="size-6 text-foreground/40" />
-						<span className="text-sm font-medium">{t("Workspace.uploadLimitReached")}</span>
+						<span className="text-sm font-medium">{t("workspace.uploadLimitReached")}</span>
 					</>
 				) : (
 					<>
 						<HugeiconsIcon icon={UploadIcon} className="size-6 text-foreground/40" />
-						<span className="text-sm font-medium">{t("Workspace.uploadTitle")}</span>
-						<span className="text-xs text-foreground/60">{t("Workspace.uploadHint")}</span>
+						<span className="text-sm font-medium">{t("workspace.uploadTitle")}</span>
+						<span className="text-xs text-foreground/60">{t("workspace.uploadHint")}</span>
 					</>
 				)}
 			</label>
 
 			<div className="space-y-2">
 				<UsageMeter
-					label={t("Workspace.storageLabel")}
-					valueLabel={t("Workspace.storageUsage", {
+					label={t("workspace.storageLabel")}
+					valueLabel={t("workspace.storageUsage", {
 						used: formatStorage(usedBytes),
 						max: formatStorage(limits.storageLimit),
 					})}
 					percent={storagePercent}
 					hint={
 						atStorageLimit
-							? t("Workspace.storageFull")
-							: t("Workspace.storageLeft", { size: formatStorage(remainingBytes) })
+							? t("workspace.storageFull")
+							: t("workspace.storageLeft", { size: formatStorage(remainingBytes) })
 					}
 				/>
 				{maxFileSizeMb && (
 					<p className="flex flex-wrap items-center justify-center gap-x-2 text-center text-xs text-foreground/50">
-						<span>{t("Workspace.uploadMaxSize", { size: maxFileSizeMb })}</span>
+						<span>{t("workspace.uploadMaxSize", { size: maxFileSizeMb })}</span>
 						{limits.maxFiles !== null && (
 							<>
 								<span aria-hidden>·</span>
 								<span>
-									{t("Workspace.uploadFileCount", {
+									{t("workspace.uploadFileCount", {
 										count: documents.length,
 										max: limits.maxFiles,
 									})}
@@ -290,15 +290,15 @@ export function UploadZone({
 			{loadError ? (
 				<div className="flex flex-1 flex-col items-center justify-center gap-2 text-center text-foreground/50">
 					<HugeiconsIcon icon={InformationCircleIcon} className="size-6 text-destructive/70" />
-					<p className="text-xs">{t("Workspace.documentsLoadError")}</p>
+					<p className="text-xs">{t("workspace.documentsLoadError")}</p>
 					<Button variant="outline" size="sm" onClick={() => router.refresh()}>
-						{t("Workspace.documentsLoadRetry")}
+						{t("workspace.documentsLoadRetry")}
 					</Button>
 				</div>
 			) : documents.length === 0 && folders.length === 0 ? (
 				<div className="flex flex-1 flex-col items-center justify-center gap-2 text-center text-foreground/40">
 					<HugeiconsIcon icon={DocumentIcon} className="size-6" />
-					<p className="text-xs">{t("Workspace.documentsEmpty")}</p>
+					<p className="text-xs">{t("workspace.documentsEmpty")}</p>
 				</div>
 			) : (
 				<ul className="-mx-1 flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto [mask-image:linear-gradient(to_bottom,black_calc(100%-1rem),transparent)] px-1 pb-4">
@@ -322,14 +322,14 @@ export function UploadZone({
 						>
 							<div className="flex w-full items-center gap-2">
 								<HugeiconsIcon icon={DocumentIcon} className="size-6" />
-								{t("Workspace.allDocuments")}
+								{t("workspace.allDocuments")}
 							</div>
 							<Tooltip>
 								<TooltipTrigger onClick={(event) => event.stopPropagation()}>
 									<HugeiconsIcon className="cursor-pointer" icon={InformationCircleIcon} />
 								</TooltipTrigger>
 								<TooltipContent>
-									<p>{t("Workspace.allDocumentsHint")}</p>
+									<p>{t("workspace.allDocumentsHint")}</p>
 								</TooltipContent>
 							</Tooltip>
 						</div>
@@ -351,7 +351,7 @@ export function UploadZone({
 									folderDocuments.map(renderDocument)
 								) : (
 									<li className="px-3 py-1.5 text-xs text-foreground/40">
-										{t("Folders.emptyFolder")}
+										{t("folders.emptyFolder")}
 									</li>
 								)}
 							</FolderGroup>
@@ -360,7 +360,7 @@ export function UploadZone({
 
 					{folders.length > 0 && unfiledDocuments.length > 0 && (
 						<li className="px-2 pt-2 text-xs font-medium text-foreground/40">
-							{t("Folders.unfiled")}
+							{t("folders.unfiled")}
 						</li>
 					)}
 					{unfiledDocuments.map(renderDocument)}
@@ -373,7 +373,7 @@ export function UploadZone({
 						icon={InformationCircleIcon}
 						className="mt-0.5 size-4 shrink-0 text-primary"
 					/>
-					<p>{t("Workspace.allDocumentsInfo")}</p>
+					<p>{t("workspace.allDocumentsInfo")}</p>
 				</div>
 			)}
 		</aside>

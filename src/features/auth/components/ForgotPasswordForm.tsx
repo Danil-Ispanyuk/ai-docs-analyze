@@ -38,11 +38,11 @@ export function ForgotPasswordForm({ expired }: { expired?: boolean }) {
 	return (
 		<Form {...form}>
 			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
-				<p className="text-sm text-foreground/60">{t("Auth.forgotPasswordDescription")}</p>
+				<p className="text-sm text-foreground/60">{t("auth.forgotPasswordDescription")}</p>
 
 				{expired && !rootError && (
 					<p className="text-sm text-destructive" role="alert">
-						{t("Auth.recoveryLinkExpired")}
+						{t("auth.recoveryLinkExpired")}
 					</p>
 				)}
 
@@ -51,12 +51,12 @@ export function ForgotPasswordForm({ expired }: { expired?: boolean }) {
 					name="email"
 					render={({ field }) => (
 						<FormItem>
-							<FormLabel>{t("Auth.emailLabel")}</FormLabel>
+							<FormLabel>{t("auth.emailLabel")}</FormLabel>
 							<FormControl>
 								<Input
 									type="email"
 									autoComplete="email"
-									placeholder={t("Auth.emailPlaceholder")}
+									placeholder={t("auth.emailPlaceholder")}
 									{...field}
 								/>
 							</FormControl>
@@ -78,12 +78,12 @@ export function ForgotPasswordForm({ expired }: { expired?: boolean }) {
 							aria-hidden
 						/>
 					)}
-					{isPending ? t("Auth.sendingResetLink") : t("Auth.sendResetLink")}
+					{isPending ? t("auth.sendingResetLink") : t("auth.sendResetLink")}
 				</Button>
 
 				<p className="text-center text-sm text-foreground/60">
 					<Link href="/sign-in" className="font-medium text-primary hover:underline">
-						{t("Auth.backToSignIn")}
+						{t("auth.backToSignIn")}
 					</Link>
 				</p>
 			</form>

@@ -31,14 +31,14 @@ export function ResetPasswordForm() {
 	return (
 		<Form {...form}>
 			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
-				<p className="text-sm text-foreground/60">{t("Auth.resetPasswordDescription")}</p>
+				<p className="text-sm text-foreground/60">{t("auth.resetPasswordDescription")}</p>
 
 				<FormField
 					control={form.control}
 					name="password"
 					render={({ field }) => (
 						<FormItem>
-							<FormLabel>{t("Auth.newPasswordLabel")}</FormLabel>
+							<FormLabel>{t("auth.newPasswordLabel")}</FormLabel>
 							<FormControl>
 								<Input type="password" autoComplete="new-password" {...field} />
 							</FormControl>
@@ -60,7 +60,7 @@ export function ResetPasswordForm() {
 							aria-hidden
 						/>
 					)}
-					{isPending ? t("Auth.resettingPassword") : t("Auth.resetPassword")}
+					{isPending ? t("auth.resettingPassword") : t("auth.resetPassword")}
 				</Button>
 			</form>
 		</Form>

@@ -18,7 +18,7 @@ function PasswordInput({ className, ...props }: Omit<React.ComponentProps<"input
 			<button
 				type="button"
 				onClick={() => setVisible((previous) => !previous)}
-				aria-label={visible ? t("Auth.hidePassword") : t("Auth.showPassword")}
+				aria-label={visible ? t("auth.hidePassword") : t("auth.showPassword")}
 				aria-pressed={visible}
 				className="absolute end-0 top-0 flex h-9 w-10 items-center justify-center rounded-e-4xl text-foreground/50 transition-colors outline-none hover:text-foreground focus-visible:text-foreground"
 			>

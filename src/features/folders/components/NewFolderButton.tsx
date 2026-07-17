@@ -37,7 +37,7 @@ export function NewFolderButton() {
 			setName("");
 			setOpen(false);
 			router.refresh();
-			toast.success(t("Folders.createSuccess"));
+			toast.success(t("folders.createSuccess"));
 		});
 	};
 
@@ -47,18 +47,18 @@ export function NewFolderButton() {
 				render={
 					<Button type="button" variant="outline" size="sm" className="shrink-0">
 						<HugeiconsIcon icon={FolderAddIcon} className="size-4" />
-						{t("Folders.newFolder")}
+						{t("folders.newFolder")}
 					</Button>
 				}
 			/>
 			<DialogContent>
 				<DialogHeader>
-					<DialogTitle>{t("Folders.newFolder")}</DialogTitle>
+					<DialogTitle>{t("folders.newFolder")}</DialogTitle>
 				</DialogHeader>
 				<Input
 					autoFocus
 					value={name}
-					placeholder={t("Folders.namePlaceholder")}
+					placeholder={t("folders.namePlaceholder")}
 					onChange={(event) => setName(event.target.value)}
 					onKeyDown={(event) => {
 						if (event.key === "Enter") {
@@ -68,7 +68,7 @@ export function NewFolderButton() {
 					}}
 				/>
 				<DialogFooter className="sm:justify-end">
-					<DialogClose render={<Button variant="outline">{t("Folders.cancel")}</Button>} />
+					<DialogClose render={<Button variant="outline">{t("folders.cancel")}</Button>} />
 					<Button onClick={handleCreate} disabled={isPending || !name.trim()}>
 						{isPending && (
 							<span
@@ -76,7 +76,7 @@ export function NewFolderButton() {
 								aria-hidden
 							/>
 						)}
-						{t("Folders.create")}
+						{t("folders.create")}
 					</Button>
 				</DialogFooter>
 			</DialogContent>

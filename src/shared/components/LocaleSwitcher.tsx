@@ -20,7 +20,7 @@ export function LocaleSwitcher() {
 	return (
 		<div
 			role="group"
-			aria-label={t("Locale.switchLanguage")}
+			aria-label={t("locale.switchLanguage")}
 			className={cn(
 				"flex items-center gap-0.5 rounded-full border border-border p-0.5",
 				isPending && "opacity-60",

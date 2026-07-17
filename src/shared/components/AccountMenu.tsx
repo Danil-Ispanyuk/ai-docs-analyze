@@ -20,7 +20,7 @@ export function AccountMenu({ className }: { className?: string }) {
 					<Button
 						variant="outline"
 						size="icon-sm"
-						aria-label={t("Workspace.accountMenu")}
+						aria-label={t("workspace.accountMenu")}
 						className={className}
 					>
 						<HugeiconsIcon icon={MoreIcon} className="size-4" />
@@ -28,13 +28,13 @@ export function AccountMenu({ className }: { className?: string }) {
 				}
 			/>
 			<MenuContent>
-				<MenuLinkItem render={<Link href="/profile" />}>{t("Workspace.profile")}</MenuLinkItem>
+				<MenuLinkItem render={<Link href="/profile" />}>{t("workspace.profile")}</MenuLinkItem>
 				<MenuItem
 					disabled={isPending}
 					onClick={() => startTransition(() => signOut())}
 					className="text-destructive data-highlighted:text-destructive"
 				>
-					{t("Workspace.logout")}
+					{t("workspace.logout")}
 				</MenuItem>
 			</MenuContent>
 		</Menu>

@@ -27,7 +27,7 @@ export function ChangePasswordForm() {
 				form.setError("root", { message: result.error });
 				return;
 			}
-			toast.success(result.message ?? t("Profile.passwordUpdated"));
+			toast.success(result.message ?? t("profile.passwordUpdated"));
 			form.reset();
 		});
 	};
@@ -40,7 +40,7 @@ export function ChangePasswordForm() {
 					name="currentPassword"
 					render={({ field }) => (
 						<FormItem>
-							<FormLabel>{t("Profile.currentPasswordLabel")}</FormLabel>
+							<FormLabel>{t("profile.currentPasswordLabel")}</FormLabel>
 							<FormControl>
 								<PasswordInput autoComplete="current-password" {...field} />
 							</FormControl>
@@ -54,7 +54,7 @@ export function ChangePasswordForm() {
 					name="newPassword"
 					render={({ field }) => (
 						<FormItem>
-							<FormLabel>{t("Profile.newPasswordLabel")}</FormLabel>
+							<FormLabel>{t("profile.newPasswordLabel")}</FormLabel>
 							<FormControl>
 								<PasswordInput autoComplete="new-password" {...field} />
 							</FormControl>
@@ -76,7 +76,7 @@ export function ChangePasswordForm() {
 							aria-hidden
 						/>
 					)}
-					{isPending ? t("Profile.updatingPassword") : t("Profile.updatePassword")}
+					{isPending ? t("profile.updatingPassword") : t("profile.updatePassword")}
 				</Button>
 			</form>
 		</Form>

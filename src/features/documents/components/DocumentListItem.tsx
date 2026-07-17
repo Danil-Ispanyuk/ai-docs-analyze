@@ -65,7 +65,7 @@ export function DocumentListItem({
 						type="button"
 						variant="ghost"
 						size="icon-sm"
-						aria-label={t("Workspace.retry")}
+						aria-label={t("workspace.retry")}
 						disabled={isReingesting}
 						onClick={(event) => {
 							event.stopPropagation();
@@ -88,7 +88,7 @@ export function DocumentListItem({
 						type="button"
 						variant="ghost"
 						size="icon-sm"
-						aria-label={t("Workspace.remove")}
+						aria-label={t("workspace.remove")}
 						disabled={isRemoving}
 						className="shrink-0 text-foreground/50 transition hover:text-destructive"
 					>

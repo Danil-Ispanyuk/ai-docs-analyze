@@ -37,12 +37,12 @@ export function SignInForm() {
 					name="email"
 					render={({ field }) => (
 						<FormItem>
-							<FormLabel>{t("Auth.emailLabel")}</FormLabel>
+							<FormLabel>{t("auth.emailLabel")}</FormLabel>
 							<FormControl>
 								<Input
 									type="email"
 									autoComplete="email"
-									placeholder={t("Auth.emailPlaceholder")}
+									placeholder={t("auth.emailPlaceholder")}
 									{...field}
 								/>
 							</FormControl>
@@ -56,7 +56,7 @@ export function SignInForm() {
 					name="password"
 					render={({ field }) => (
 						<FormItem>
-							<FormLabel>{t("Auth.passwordLabel")}</FormLabel>
+							<FormLabel>{t("auth.passwordLabel")}</FormLabel>
 							<FormControl>
 								<Input type="password" autoComplete="current-password" {...field} />
 							</FormControl>
@@ -70,7 +70,7 @@ export function SignInForm() {
 						href="/forgot-password"
 						className="text-sm font-medium text-primary hover:underline"
 					>
-						{t("Auth.forgotPassword")}
+						{t("auth.forgotPassword")}
 					</Link>
 				</div>
 
@@ -87,13 +87,13 @@ export function SignInForm() {
 							aria-hidden
 						/>
 					)}
-					{isPending ? t("Auth.signingIn") : t("Auth.signIn")}
+					{isPending ? t("auth.signingIn") : t("auth.signIn")}
 				</Button>
 
 				<p className="text-center text-sm text-foreground/60">
-					{t("Auth.noAccount")}{" "}
+					{t("auth.noAccount")}{" "}
 					<Link href="/sign-up" className="font-medium text-primary hover:underline">
-						{t("Auth.signUp")}
+						{t("auth.signUp")}
 					</Link>
 				</p>
 			</form>

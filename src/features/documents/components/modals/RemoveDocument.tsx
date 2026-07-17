@@ -37,16 +37,16 @@ export function RemoveDocumentModal({
 			<DialogTrigger render={children} />
 			<DialogContent>
 				<DialogHeader>
-					<DialogTitle>{t("Workspace.modal.document.removeTitle")}</DialogTitle>
+					<DialogTitle>{t("workspace.modal.document.removeTitle")}</DialogTitle>
 				</DialogHeader>
 				<DialogDescription>
-					{t("Workspace.modal.document.removeDescription", {
+					{t("workspace.modal.document.removeDescription", {
 						document: documentTitle,
 					})}
 				</DialogDescription>
 				<DialogFooter showCloseButton className="flex justify-between">
 					<Button variant="destructive" onClick={handleConfirm} disabled={pending}>
-						{t("Workspace.modal.confirm")}
+						{t("workspace.modal.confirm")}
 					</Button>
 				</DialogFooter>
 			</DialogContent>

@@ -20,7 +20,7 @@ export function AuthLayout({ children }: PropsWithChildren) {
 
 			<section className="w-full max-w-md space-y-6 rounded-2xl border border-border bg-background/80 p-8 shadow-lg shadow-primary/5 backdrop-blur">
 				<header className="space-y-1 text-center">
-					<h1 className="text-2xl font-semibold tracking-tight">{t("Auth.subtitle")}</h1>
+					<h1 className="text-2xl font-semibold tracking-tight">{t("auth.subtitle")}</h1>
 				</header>
 
 				{children}

@@ -47,12 +47,12 @@ export function MoveToFolderDialog({
 			}
 			setOpen(false);
 			router.refresh();
-			toast.success(t("Folders.moveSuccess"));
+			toast.success(t("folders.moveSuccess"));
 		});
 	};
 
 	const options: { id: string | null; label: string }[] = [
-		{ id: null, label: t("Folders.noFolder") },
+		{ id: null, label: t("folders.noFolder") },
 		...folders.map((folder) => ({ id: folder.id, label: folder.name })),
 	];
 
@@ -64,7 +64,7 @@ export function MoveToFolderDialog({
 						type="button"
 						variant="ghost"
 						size="icon-sm"
-						aria-label={t("Folders.moveToFolder")}
+						aria-label={t("folders.moveToFolder")}
 						className="shrink-0 text-foreground/50 transition hover:text-primary"
 						onClick={(event) => event.stopPropagation()}
 					>
@@ -74,7 +74,7 @@ export function MoveToFolderDialog({
 			/>
 			<DialogContent>
 				<DialogHeader>
-					<DialogTitle>{t("Folders.moveToFolder")}</DialogTitle>
+					<DialogTitle>{t("folders.moveToFolder")}</DialogTitle>
 				</DialogHeader>
 				<ul className="flex flex-col gap-1">
 					{options.map((option) => (
@@ -92,7 +92,7 @@ export function MoveToFolderDialog({
 								<HugeiconsIcon icon={FolderIcon} className="me-2 size-4 text-foreground/50" />
 								{option.label}
 								{option.id === currentFolderId && (
-									<span className="ms-auto text-xs text-foreground/50">{t("Folders.current")}</span>
+									<span className="ms-auto text-xs text-foreground/50">{t("folders.current")}</span>
 								)}
 							</Button>
 						</li>

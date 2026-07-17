@@ -22,10 +22,10 @@ export async function ProfileContent({ overview, email, fullName }: ProfileConte
 
 	const isPro = overview.plan === PLAN_TYPES.PRO;
 	const planLabel = isPro
-		? t("Profile.planPro")
+		? t("profile.planPro")
 		: overview.plan === PLAN_TYPES.GUEST
-			? t("Profile.planGuest")
-			: t("Profile.planFree");
+			? t("profile.planGuest")
+			: t("profile.planFree");
 
 	const renewalLabel =
 		overview.renewalDate &&
@@ -38,21 +38,21 @@ export async function ProfileContent({ overview, email, fullName }: ProfileConte
 				className="inline-flex items-center gap-1.5 text-sm text-foreground/60 transition-colors hover:text-foreground"
 			>
 				<HugeiconsIcon icon={ArrowLeftIcon} className="size-4 rtl:-scale-x-100" />
-				{t("Profile.back")}
+				{t("profile.back")}
 			</Link>
-			<h1 className="font-heading text-2xl font-semibold tracking-tight">{t("Profile.title")}</h1>
+			<h1 className="font-heading text-2xl font-semibold tracking-tight">{t("profile.title")}</h1>
 
 			<section className="space-y-4 rounded-3xl border border-border bg-card p-6 text-card-foreground">
 				<div>
-					<h2 className="font-heading text-base font-medium">{t("Profile.accountTitle")}</h2>
+					<h2 className="font-heading text-base font-medium">{t("profile.accountTitle")}</h2>
 					<dl className="mt-3 space-y-1 text-sm">
 						<div className="flex justify-between gap-3">
-							<dt className="text-foreground/55">{t("Profile.emailLabel")}</dt>
+							<dt className="text-foreground/55">{t("profile.emailLabel")}</dt>
 							<dd className="truncate font-medium">{email}</dd>
 						</div>
 						{fullName && (
 							<div className="flex justify-between gap-3">
-								<dt className="text-foreground/55">{t("Profile.nameLabel")}</dt>
+								<dt className="text-foreground/55">{t("profile.nameLabel")}</dt>
 								<dd className="truncate font-medium">{fullName}</dd>
 							</div>
 						)}
@@ -60,9 +60,9 @@ export async function ProfileContent({ overview, email, fullName }: ProfileConte
 				</div>
 				<hr className="border-border" />
 				<div>
-					<h3 className="text-sm font-medium">{t("Profile.changePasswordTitle")}</h3>
+					<h3 className="text-sm font-medium">{t("profile.changePasswordTitle")}</h3>
 					<p className="mt-1 mb-4 text-sm text-foreground/55">
-						{t("Profile.changePasswordDescription")}
+						{t("profile.changePasswordDescription")}
 					</p>
 					<ChangePasswordForm />
 				</div>
@@ -71,13 +71,13 @@ export async function ProfileContent({ overview, email, fullName }: ProfileConte
 			<section className="space-y-4 rounded-3xl border border-border bg-card p-6 text-card-foreground">
 				<div className="flex items-center justify-between gap-3">
 					<div>
-						<h2 className="font-heading text-base font-medium">{t("Profile.planTitle")}</h2>
+						<h2 className="font-heading text-base font-medium">{t("profile.planTitle")}</h2>
 						<p className="mt-1 text-sm text-foreground/55">
 							{overview.cancelAtPeriodEnd && renewalLabel
-								? t("Profile.endsOn", { date: renewalLabel })
+								? t("profile.endsOn", { date: renewalLabel })
 								: isPro && renewalLabel
-									? t("Profile.renewsOn", { date: renewalLabel })
-									: t("Profile.planDescription")}
+									? t("profile.renewsOn", { date: renewalLabel })
+									: t("profile.planDescription")}
 						</p>
 					</div>
 					<span className="shrink-0 rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
@@ -87,14 +87,14 @@ export async function ProfileContent({ overview, email, fullName }: ProfileConte
 
 				{!isPro && !overview.hasSubscription && (
 					<div className="flex items-center justify-between gap-3">
-						<p className="text-sm text-foreground/55">{t("Profile.upgradePrompt")}</p>
+						<p className="text-sm text-foreground/55">{t("profile.upgradePrompt")}</p>
 						<UpgradeButton />
 					</div>
 				)}
 
 				{overview.hasSubscription && !overview.cancelAtPeriodEnd && (
 					<div className="flex items-center justify-between gap-3">
-						<p className="text-sm text-foreground/55">{t("Profile.cancelPrompt")}</p>
+						<p className="text-sm text-foreground/55">{t("profile.cancelPrompt")}</p>
 						<CancelSubscriptionButton />
 					</div>
 				)}
@@ -102,14 +102,14 @@ export async function ProfileContent({ overview, email, fullName }: ProfileConte
 				{overview.cancelAtPeriodEnd && (
 					<p className="rounded-2xl bg-muted px-4 py-3 text-sm text-foreground/60">
 						{renewalLabel
-							? t("Profile.cancelScheduledNote", { date: renewalLabel })
-							: t("Profile.cancelScheduled")}
+							? t("profile.cancelScheduledNote", { date: renewalLabel })
+							: t("profile.cancelScheduled")}
 					</p>
 				)}
 			</section>
 
 			<section className="space-y-4 rounded-3xl border border-border bg-card p-6 text-card-foreground">
-				<h2 className="font-heading text-base font-medium">{t("Profile.paymentsTitle")}</h2>
+				<h2 className="font-heading text-base font-medium">{t("profile.paymentsTitle")}</h2>
 				<PaymentHistory invoices={overview.invoices} />
 			</section>
 
@@ -117,10 +117,10 @@ export async function ProfileContent({ overview, email, fullName }: ProfileConte
 				<div className="flex items-center justify-between gap-3">
 					<div>
 						<h2 className="font-heading text-base font-medium text-destructive">
-							{t("Profile.dangerZoneTitle")}
+							{t("profile.dangerZoneTitle")}
 						</h2>
 						<p className="mt-1 text-sm text-foreground/55">
-							{t("Profile.deleteAccountDescription")}
+							{t("profile.deleteAccountDescription")}
 						</p>
 					</div>
 					<DeleteAccountButton email={email} />

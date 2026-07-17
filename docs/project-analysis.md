@@ -48,7 +48,7 @@ The codebase is organized **feature-first**: each business domain owns a self-co
 
 ```
 ai-document-analyzer/
-├── .claude/skills/          # Project-scoped Claude Code skills (add-ui, commit, db-migrate, i18n-text, rag-pipeline)
+├── .claude/skills/          # Project-scoped Claude Code skills (commit, db-migrate, i18n-text, rag-pipeline)
 ├── docs/                    # ROADMAP, TECH_DEBT, this analysis, features/ (per-feature docs)
 ├── prisma/
 │   ├── schema.prisma        # Prisma models: Profile, Document, Chunk, Usage

@@ -49,9 +49,9 @@ export function PreviewContainer({
 	const selectedDoc =
 		documents.find((document) => document.id === effectiveScope.documentId) ?? null;
 	const selectedFolder = folders.find((folder) => folder.id === effectiveScope.folderId) ?? null;
-	const scopeName = selectedDoc?.name ?? selectedFolder?.name ?? t("Workspace.allDocuments");
+	const scopeName = selectedDoc?.name ?? selectedFolder?.name ?? t("workspace.allDocuments");
 	const chatDisabledReason =
-		selectedDoc?.status === DOCUMENT_STATUSES.ERROR ? t("Workspace.previewErroredBody") : null;
+		selectedDoc?.status === DOCUMENT_STATUSES.ERROR ? t("workspace.previewErroredBody") : null;
 
 	const handleSelectAll = () => {
 		setScope(ALL_SCOPE);
@@ -77,9 +77,9 @@ export function PreviewContainer({
 	};
 
 	const tabs: { id: Tab; label: string }[] = [
-		{ id: "documents", label: t("Workspace.documentsTitle") },
-		{ id: "preview", label: t("Workspace.previewTab") },
-		{ id: "chat", label: t("Workspace.chatTab") },
+		{ id: "documents", label: t("workspace.documentsTitle") },
+		{ id: "preview", label: t("workspace.previewTab") },
+		{ id: "chat", label: t("workspace.chatTab") },
 	];
 
 	return (

@@ -35,7 +35,7 @@ export async function changePassword(values: ChangePasswordInput): Promise<Profi
 		password: parsed.data.currentPassword,
 	});
 	if (verifyError) {
-		return { error: t("Profile.currentPasswordIncorrect") };
+		return { error: t("profile.currentPasswordIncorrect") };
 	}
 
 	const { error } = await supabase.auth.updateUser({ password: parsed.data.newPassword });
@@ -43,7 +43,7 @@ export async function changePassword(values: ChangePasswordInput): Promise<Profi
 		return { error: error.message };
 	}
 
-	return { message: t("Profile.passwordUpdated") };
+	return { message: t("profile.passwordUpdated") };
 }
 
 export async function cancelSubscription(): Promise<ProfileResult> {
@@ -62,7 +62,7 @@ export async function cancelSubscription(): Promise<ProfileResult> {
 		.single();
 
 	if (!profile?.stripe_subscription_id) {
-		return { error: t("Profile.noActiveSubscription") };
+		return { error: t("profile.noActiveSubscription") };
 	}
 
 	try {
@@ -71,11 +71,11 @@ export async function cancelSubscription(): Promise<ProfileResult> {
 		});
 	} catch (error) {
 		console.error("cancelSubscription failed:", error);
-		return { error: error instanceof Error ? error.message : t("Profile.cancelError") };
+		return { error: error instanceof Error ? error.message : t("profile.cancelError") };
 	}
 
 	revalidatePath("/profile");
-	return { message: t("Profile.cancelScheduled") };
+	return { message: t("profile.cancelScheduled") };
 }
 
 export async function deleteAccount(values: DeleteAccountInput): Promise<ProfileResult> {
@@ -97,7 +97,7 @@ export async function deleteAccount(values: DeleteAccountInput): Promise<Profile
 		password: parsed.data.password,
 	});
 	if (verifyError) {
-		return { error: t("Profile.deletePasswordIncorrect") };
+		return { error: t("profile.deletePasswordIncorrect") };
 	}
 
 	const { data: profile } = await supabase

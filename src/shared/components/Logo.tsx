@@ -23,7 +23,7 @@ export function Logo({ isGuest, iconOnly = false, className }: LogoProps) {
 			</span>
 			{!iconOnly && (
 				<span className="truncate text-[0.95rem] font-semibold tracking-tight">
-					{t("General.title")}
+					{t("general.title")}
 				</span>
 			)}
 		</>

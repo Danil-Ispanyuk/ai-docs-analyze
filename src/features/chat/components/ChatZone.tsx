@@ -49,7 +49,7 @@ export function ChatZone({
 	const { messages, sendMessage, setMessages, status } = useChat<ChatMessage>({
 		transport: new DefaultChatTransport({ api: "/api/chat" }),
 		messages: initialMessages,
-		onError: () => toast.error(t("Workspace.chatError")),
+		onError: () => toast.error(t("workspace.chatError")),
 		onFinish: ({ message }) => {
 			const tokens = message.metadata?.tokens;
 			if (tokens) setSessionTokens((previous) => previous + tokens);
@@ -63,7 +63,7 @@ export function ChatZone({
 		startClear(async () => {
 			const result = await clearChatMessages(scope);
 			if (result?.error) {
-				toast.error(t("Workspace.chatError"));
+				toast.error(t("workspace.chatError"));
 				return;
 			}
 			setMessages([]);
@@ -80,11 +80,11 @@ export function ChatZone({
 	const usageMax = isRequestCapped ? limits.requestCap : limits.tokenBudget;
 	const usagePercent = usageMax ? (usageUsed / usageMax) * 100 : 0;
 	const usageMeterLabel = isRequestCapped
-		? t("Workspace.questionsLabel")
-		: t("Workspace.tokensLabel");
+		? t("workspace.questionsLabel")
+		: t("workspace.tokensLabel");
 	const usageValueLabel = isRequestCapped
-		? t("Workspace.usageQuestions", { used: usageUsed, max: usageMax ?? 0 })
-		: t("Workspace.usageTokens", {
+		? t("workspace.usageQuestions", { used: usageUsed, max: usageMax ?? 0 })
+		: t("workspace.usageTokens", {
 				used: formatTokens(usageUsed),
 				max: usageMax !== null ? formatTokens(usageMax) : "∞",
 			});
@@ -92,11 +92,11 @@ export function ChatZone({
 	const minutesUntilReset = Math.max(1, Math.ceil((getNextUsageResetMs(now) - now) / 60_000));
 	const resetHint =
 		minutesUntilReset >= 60
-			? t("Workspace.usageResetsInHours", {
+			? t("workspace.usageResetsInHours", {
 					hours: Math.floor(minutesUntilReset / 60),
 					minutes: minutesUntilReset % 60,
 				})
-			: t("Workspace.usageResetsInMinutes", { minutes: minutesUntilReset });
+			: t("workspace.usageResetsInMinutes", { minutes: minutesUntilReset });
 
 	const last = messages[messages.length - 1];
 	const lastAssistantText =
@@ -138,7 +138,7 @@ export function ChatZone({
 			<div className="shrink-0 space-y-2 border-b border-border px-4 py-2.5">
 				<div className="flex items-center justify-between gap-2">
 					<p className="min-w-0 flex-1 truncate text-xs text-foreground/50">
-						{t("Workspace.scope", { scope: scopeName })}
+						{t("workspace.scope", { scope: scopeName })}
 					</p>
 					<Button
 						type="button"
@@ -148,7 +148,7 @@ export function ChatZone({
 						onClick={handleClearChat}
 						className="h-auto shrink-0 px-2 py-1 text-xs text-foreground/50 hover:text-destructive"
 					>
-						{t("Workspace.clearChat")}
+						{t("workspace.clearChat")}
 					</Button>
 				</div>
 				<UsageMeter
@@ -163,15 +163,15 @@ export function ChatZone({
 					<div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
 						<HugeiconsIcon icon={ChatIcon} className="size-8 text-foreground/30" />
 						<p className="text-sm font-medium text-foreground/70">
-							{t("Workspace.chatWelcomeTitle")}
+							{t("workspace.chatWelcomeTitle")}
 						</p>
-						<p className="max-w-sm text-sm text-foreground/50">{t("Workspace.chatWelcomeBody")}</p>
+						<p className="max-w-sm text-sm text-foreground/50">{t("workspace.chatWelcomeBody")}</p>
 						<p className="max-w-xs text-xs text-foreground/40">
 							{scope.documentId
-								? t("Workspace.chatScopedDoc", { name: scopeName })
+								? t("workspace.chatScopedDoc", { name: scopeName })
 								: scope.folderId
-									? t("Workspace.chatScopedFolder", { name: scopeName })
-									: t("Workspace.chatScopedAll")}
+									? t("workspace.chatScopedFolder", { name: scopeName })
+									: t("workspace.chatScopedAll")}
 						</p>
 					</div>
 				) : (
@@ -243,7 +243,7 @@ export function ChatZone({
 						ref={inputRef}
 						value={input}
 						onChange={(e) => setInput(e.target.value)}
-						placeholder={t("Workspace.chatPlaceholder")}
+						placeholder={t("workspace.chatPlaceholder")}
 						disabled={isInputDisabled}
 						className="flex-1 bg-transparent py-1.5 text-sm outline-none placeholder:text-muted-foreground disabled:opacity-50"
 					/>
@@ -251,7 +251,7 @@ export function ChatZone({
 						type="submit"
 						size="icon-sm"
 						disabled={isInputDisabled || !input.trim()}
-						aria-label={t("Workspace.send")}
+						aria-label={t("workspace.send")}
 					>
 						<HugeiconsIcon icon={SendIcon} className="size-4 rtl:-scale-x-100" />
 					</Button>

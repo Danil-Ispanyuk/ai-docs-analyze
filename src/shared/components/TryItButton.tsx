@@ -27,7 +27,7 @@ export function TryItButton() {
 						aria-hidden
 					/>
 				)}
-				{isPending ? t("Landing.tryingIt") : t("Landing.tryIt")}
+				{isPending ? t("landing.tryingIt") : t("landing.tryIt")}
 			</Button>
 			{error && (
 				<p className="text-sm text-destructive" role="alert">

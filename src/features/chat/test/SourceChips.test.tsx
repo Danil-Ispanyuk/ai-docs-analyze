@@ -7,9 +7,9 @@ import type { Source } from "@/features/chat/types";
 
 vi.mock("@/shared/config/i18n", () => ({
 	useT: () => (key: string, vars?: Record<string, unknown>) => {
-		if (key === "Workspace.sourcePage") return `p.${vars?.page}`;
-		if (key === "Workspace.morePages") return `+${vars?.count}`;
-		if (key === "Workspace.morePagesLabel") return "more pages";
+		if (key === "workspace.sourcePage") return `p.${vars?.page}`;
+		if (key === "workspace.morePages") return `+${vars?.count}`;
+		if (key === "workspace.morePagesLabel") return "more pages";
 		return key;
 	},
 }));

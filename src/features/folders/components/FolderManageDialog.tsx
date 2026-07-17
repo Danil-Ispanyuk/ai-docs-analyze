@@ -44,7 +44,7 @@ export function FolderManageDialog({ folderId, name }: FolderManageDialogProps) 
 			}
 			setOpen(false);
 			router.refresh();
-			toast.success(t("Folders.renameSuccess"));
+			toast.success(t("folders.renameSuccess"));
 		});
 	};
 
@@ -57,7 +57,7 @@ export function FolderManageDialog({ folderId, name }: FolderManageDialogProps) 
 			}
 			setOpen(false);
 			router.refresh();
-			toast.success(t("Folders.deleteSuccess"));
+			toast.success(t("folders.deleteSuccess"));
 		});
 	};
 
@@ -75,7 +75,7 @@ export function FolderManageDialog({ folderId, name }: FolderManageDialogProps) 
 						type="button"
 						variant="ghost"
 						size="icon-sm"
-						aria-label={t("Folders.manage")}
+						aria-label={t("folders.manage")}
 						className="shrink-0 text-foreground/40 hover:text-foreground"
 						onClick={(event) => event.stopPropagation()}
 					>
@@ -85,12 +85,12 @@ export function FolderManageDialog({ folderId, name }: FolderManageDialogProps) 
 			/>
 			<DialogContent>
 				<DialogHeader>
-					<DialogTitle>{t("Folders.manageTitle")}</DialogTitle>
+					<DialogTitle>{t("folders.manageTitle")}</DialogTitle>
 				</DialogHeader>
 				<Input
 					autoFocus
 					value={value}
-					placeholder={t("Folders.namePlaceholder")}
+					placeholder={t("folders.namePlaceholder")}
 					onChange={(event) => setValue(event.target.value)}
 					onKeyDown={(event) => {
 						if (event.key === "Enter") {
@@ -108,13 +108,13 @@ export function FolderManageDialog({ folderId, name }: FolderManageDialogProps) 
 						className="w-full justify-center text-destructive hover:text-destructive sm:w-auto sm:justify-start"
 					>
 						<HugeiconsIcon icon={DeleteIcon} className="me-1.5 size-4" />
-						{t("Folders.delete")}
+						{t("folders.delete")}
 					</Button>
 					<div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
 						<DialogClose
 							render={
 								<Button variant="outline" className="w-full sm:w-auto">
-									{t("Folders.cancel")}
+									{t("folders.cancel")}
 								</Button>
 							}
 						/>
@@ -123,7 +123,7 @@ export function FolderManageDialog({ folderId, name }: FolderManageDialogProps) 
 							disabled={isPending || !value.trim()}
 							className="w-full sm:w-auto"
 						>
-							{t("Folders.save")}
+							{t("folders.save")}
 						</Button>
 					</div>
 				</DialogFooter>

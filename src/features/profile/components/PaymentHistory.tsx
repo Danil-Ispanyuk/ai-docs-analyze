@@ -10,7 +10,7 @@ export async function PaymentHistory({ invoices }: PaymentHistoryProps) {
 	const locale = await getLocale();
 
 	if (invoices.length === 0) {
-		return <p className="text-sm text-foreground/60">{t("Profile.noPayments")}</p>;
+		return <p className="text-sm text-foreground/60">{t("profile.noPayments")}</p>;
 	}
 
 	const dateFormat = new Intl.DateTimeFormat(locale, { dateStyle: "medium" });
@@ -30,7 +30,7 @@ export async function PaymentHistory({ invoices }: PaymentHistoryProps) {
 					</div>
 					<div className="flex items-center gap-3">
 						<span className="text-xs text-foreground/60 capitalize">
-							{invoice.status ?? t("Profile.statusUnknown")}
+							{invoice.status ?? t("profile.statusUnknown")}
 						</span>
 						{invoice.hostedInvoiceUrl && (
 							<a
@@ -39,7 +39,7 @@ export async function PaymentHistory({ invoices }: PaymentHistoryProps) {
 								rel="noreferrer"
 								className="text-xs text-primary underline-offset-4 hover:underline"
 							>
-								{t("Profile.viewInvoice")}
+								{t("profile.viewInvoice")}
 							</a>
 						)}
 					</div>

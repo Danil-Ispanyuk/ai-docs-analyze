@@ -131,7 +131,7 @@ export function PdfViewer({ url, page, label, onLoadError }: PdfViewerProps) {
 					loading={<Spinner />}
 					error={
 						<div className="flex h-full items-center justify-center p-6 text-center text-sm text-destructive">
-							{t("Workspace.previewError")}
+							{t("workspace.previewError")}
 						</div>
 					}
 					className="py-4"

@@ -8,7 +8,7 @@ export function DocumentStatusBadge({ status }: { status: string }) {
 
 	if (status === DOCUMENT_STATUSES.PENDING) {
 		return (
-			<span className="shrink-0 text-xs text-foreground/50">{t("Workspace.statusPending")}</span>
+			<span className="shrink-0 text-xs text-foreground/50">{t("workspace.statusPending")}</span>
 		);
 	}
 
@@ -19,19 +19,19 @@ export function DocumentStatusBadge({ status }: { status: string }) {
 					className="size-3 animate-spin rounded-full border-2 border-current border-t-transparent"
 					aria-hidden
 				/>
-				{t("Workspace.statusProcessing")}
+				{t("workspace.statusProcessing")}
 			</span>
 		);
 	}
 
 	if (status === DOCUMENT_STATUSES.ERROR) {
-		return <span className="shrink-0 text-xs text-destructive">{t("Workspace.statusError")}</span>;
+		return <span className="shrink-0 text-xs text-destructive">{t("workspace.statusError")}</span>;
 	}
 
 	if (status === DOCUMENT_STATUSES.READY) {
 		return (
 			<span className="shrink-0 text-xs text-emerald-600 dark:text-emerald-500">
-				{t("Workspace.statusReady")}
+				{t("workspace.statusReady")}
 			</span>
 		);
 	}

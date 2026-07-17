@@ -29,7 +29,7 @@ export function CancelSubscriptionButton() {
 				toast.error(result.error);
 				return;
 			}
-			toast.success(result.message ?? t("Profile.cancelScheduled"));
+			toast.success(result.message ?? t("profile.cancelScheduled"));
 			router.refresh();
 		});
 	};
@@ -39,18 +39,18 @@ export function CancelSubscriptionButton() {
 			<DialogTrigger
 				render={
 					<Button variant="destructive" size="sm">
-						{t("Profile.cancelSubscription")}
+						{t("profile.cancelSubscription")}
 					</Button>
 				}
 			/>
 			<DialogContent>
 				<DialogHeader>
-					<DialogTitle>{t("Profile.cancelModalTitle")}</DialogTitle>
+					<DialogTitle>{t("profile.cancelModalTitle")}</DialogTitle>
 				</DialogHeader>
-				<DialogDescription>{t("Profile.cancelModalDescription")}</DialogDescription>
+				<DialogDescription>{t("profile.cancelModalDescription")}</DialogDescription>
 				<DialogFooter className="sm:justify-end">
 					<DialogClose
-						render={<Button variant="outline">{t("Profile.keepSubscription")}</Button>}
+						render={<Button variant="outline">{t("profile.keepSubscription")}</Button>}
 					/>
 					<Button variant="destructive" onClick={handleCancel} disabled={isPending}>
 						{isPending && (
@@ -59,7 +59,7 @@ export function CancelSubscriptionButton() {
 								aria-hidden
 							/>
 						)}
-						{t("Profile.confirmCancel")}
+						{t("profile.confirmCancel")}
 					</Button>
 				</DialogFooter>
 			</DialogContent>

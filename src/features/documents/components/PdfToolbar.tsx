@@ -34,7 +34,7 @@ export function PdfToolbar({
 				<Button
 					variant="ghost"
 					size="icon"
-					aria-label={t("Workspace.zoomOut")}
+					aria-label={t("workspace.zoomOut")}
 					disabled={!canZoomOut}
 					onClick={onZoomOut}
 				>
@@ -43,7 +43,7 @@ export function PdfToolbar({
 				<Button
 					variant="ghost"
 					size="icon"
-					aria-label={t("Workspace.zoomIn")}
+					aria-label={t("workspace.zoomIn")}
 					disabled={!canZoomIn}
 					onClick={onZoomIn}
 				>
@@ -52,13 +52,13 @@ export function PdfToolbar({
 			</div>
 
 			<span className="text-xs font-medium text-foreground/60 tabular-nums">
-				{t("Workspace.pageOf", { current: currentPage, total: numPages })}
+				{t("workspace.pageOf", { current: currentPage, total: numPages })}
 			</span>
 
 			<Button
 				variant="ghost"
 				size="icon"
-				aria-label={isExpanded ? t("Workspace.collapse") : t("Workspace.expand")}
+				aria-label={isExpanded ? t("workspace.collapse") : t("workspace.expand")}
 				onClick={onToggleExpand}
 			>
 				<HugeiconsIcon icon={isExpanded ? CollapseIcon : ExpandIcon} />

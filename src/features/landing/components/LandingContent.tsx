@@ -8,9 +8,9 @@ export function LandingContent() {
 	const t = useT();
 
 	const features = [
-		{ icon: CitationIcon, title: t("Landing.feature1Title"), body: t("Landing.feature1Body") },
-		{ icon: GroundedIcon, title: t("Landing.feature2Title"), body: t("Landing.feature2Body") },
-		{ icon: PrivacyIcon, title: t("Landing.feature3Title"), body: t("Landing.feature3Body") },
+		{ icon: CitationIcon, title: t("landing.feature1Title"), body: t("landing.feature1Body") },
+		{ icon: GroundedIcon, title: t("landing.feature2Title"), body: t("landing.feature2Body") },
+		{ icon: PrivacyIcon, title: t("landing.feature3Title"), body: t("landing.feature3Body") },
 	];
 
 	return (
@@ -28,13 +28,13 @@ export function LandingContent() {
 						href="/sign-in"
 						className="text-sm font-medium text-foreground/70 transition-colors hover:text-foreground"
 					>
-						{t("Auth.signIn")}
+						{t("auth.signIn")}
 					</Link>
 					<Link
 						href="/sign-up"
 						className="text-sm font-medium text-foreground/70 transition-colors hover:text-foreground"
 					>
-						{t("Auth.signUp")}
+						{t("auth.signUp")}
 					</Link>
 				</div>
 			</header>
@@ -43,18 +43,18 @@ export function LandingContent() {
 				<div className="flex max-w-2xl flex-col items-center gap-6">
 					<span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/60 px-3 py-1 text-xs font-medium text-foreground/70 shadow-sm backdrop-blur">
 						<HugeiconsIcon icon={BrandIcon} className="size-3.5 text-primary" />
-						{t("Landing.eyebrow")}
+						{t("landing.eyebrow")}
 					</span>
 
 					<h1 className="bg-gradient-to-br from-foreground to-foreground/55 bg-clip-text pb-1 text-5xl leading-none font-semibold tracking-tight text-balance text-transparent sm:text-6xl">
-						{t("Landing.title")}
+						{t("landing.title")}
 					</h1>
 
-					<p className="max-w-xl text-lg text-pretty text-foreground/60">{t("Landing.subtitle")}</p>
+					<p className="max-w-xl text-lg text-pretty text-foreground/60">{t("landing.subtitle")}</p>
 
 					<div className="mt-2 flex flex-col items-center gap-3">
 						<TryItButton />
-						<p className="text-xs text-foreground/50">{t("Landing.guestNote")}</p>
+						<p className="text-xs text-foreground/50">{t("landing.guestNote")}</p>
 					</div>
 				</div>
 

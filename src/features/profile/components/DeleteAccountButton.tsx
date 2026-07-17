@@ -44,19 +44,19 @@ export function DeleteAccountButton({ email }: DeleteAccountButtonProps) {
 			<DialogTrigger
 				render={
 					<Button variant="destructive" size="sm">
-						{t("Profile.deleteAccount")}
+						{t("profile.deleteAccount")}
 					</Button>
 				}
 			/>
 			<DialogContent>
 				<DialogHeader>
-					<DialogTitle>{t("Profile.deleteModalTitle")}</DialogTitle>
+					<DialogTitle>{t("profile.deleteModalTitle")}</DialogTitle>
 				</DialogHeader>
-				<DialogDescription>{t("Profile.deleteModalDescription")}</DialogDescription>
+				<DialogDescription>{t("profile.deleteModalDescription")}</DialogDescription>
 
 				<div className="space-y-4">
 					<div className="space-y-2">
-						<Label htmlFor="delete-password">{t("Profile.deletePasswordLabel")}</Label>
+						<Label htmlFor="delete-password">{t("profile.deletePasswordLabel")}</Label>
 						<Input
 							id="delete-password"
 							type="password"
@@ -67,7 +67,7 @@ export function DeleteAccountButton({ email }: DeleteAccountButtonProps) {
 					</div>
 					<div className="space-y-2">
 						<Label htmlFor="delete-confirm-email">
-							{t("Profile.deleteConfirmLabel", { email })}
+							{t("profile.deleteConfirmLabel", { email })}
 						</Label>
 						<Input
 							id="delete-confirm-email"
@@ -81,7 +81,7 @@ export function DeleteAccountButton({ email }: DeleteAccountButtonProps) {
 				</div>
 
 				<DialogFooter className="sm:justify-end">
-					<DialogClose render={<Button variant="outline">{t("Profile.keepAccount")}</Button>} />
+					<DialogClose render={<Button variant="outline">{t("profile.keepAccount")}</Button>} />
 					<Button variant="destructive" onClick={handleDelete} disabled={isPending || !canDelete}>
 						{isPending && (
 							<span
@@ -89,7 +89,7 @@ export function DeleteAccountButton({ email }: DeleteAccountButtonProps) {
 								aria-hidden
 							/>
 						)}
-						{t("Profile.confirmDelete")}
+						{t("profile.confirmDelete")}
 					</Button>
 				</DialogFooter>
 			</DialogContent>

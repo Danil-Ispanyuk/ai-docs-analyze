@@ -17,13 +17,13 @@ export function UpgradeButton() {
 				window.location.href = result.url;
 				return;
 			}
-			toast.error(result.error ?? t("Workspace.upgradeError"));
+			toast.error(result.error ?? t("workspace.upgradeError"));
 		});
 	};
 
 	return (
 		<Button size="sm" onClick={handleUpgrade} disabled={isPending}>
-			{isPending ? t("Workspace.upgrading") : t("Workspace.upgrade")}
+			{isPending ? t("workspace.upgrading") : t("workspace.upgrade")}
 		</Button>
 	);
 }

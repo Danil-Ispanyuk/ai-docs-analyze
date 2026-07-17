@@ -37,12 +37,12 @@ export function SignUpForm() {
 					name="fullName"
 					render={({ field }) => (
 						<FormItem>
-							<FormLabel>{t("Auth.fullNameLabel")}</FormLabel>
+							<FormLabel>{t("auth.fullNameLabel")}</FormLabel>
 							<FormControl>
 								<Input
 									type="text"
 									autoComplete="name"
-									placeholder={t("Auth.fullNamePlaceholder")}
+									placeholder={t("auth.fullNamePlaceholder")}
 									{...field}
 								/>
 							</FormControl>
@@ -56,12 +56,12 @@ export function SignUpForm() {
 					name="email"
 					render={({ field }) => (
 						<FormItem>
-							<FormLabel>{t("Auth.emailLabel")}</FormLabel>
+							<FormLabel>{t("auth.emailLabel")}</FormLabel>
 							<FormControl>
 								<Input
 									type="email"
 									autoComplete="email"
-									placeholder={t("Auth.emailPlaceholder")}
+									placeholder={t("auth.emailPlaceholder")}
 									{...field}
 								/>
 							</FormControl>
@@ -75,7 +75,7 @@ export function SignUpForm() {
 					name="password"
 					render={({ field }) => (
 						<FormItem>
-							<FormLabel>{t("Auth.passwordLabel")}</FormLabel>
+							<FormLabel>{t("auth.passwordLabel")}</FormLabel>
 							<FormControl>
 								<Input type="password" autoComplete="new-password" {...field} />
 							</FormControl>
@@ -97,13 +97,13 @@ export function SignUpForm() {
 							aria-hidden
 						/>
 					)}
-					{isPending ? t("Auth.signingUp") : t("Auth.signUp")}
+					{isPending ? t("auth.signingUp") : t("auth.signUp")}
 				</Button>
 
 				<p className="text-center text-sm text-foreground/60">
-					{t("Auth.existAccount")}{" "}
+					{t("auth.existAccount")}{" "}
 					<Link href="/sign-in" className="font-medium text-primary hover:underline">
-						{t("Auth.signIn")}
+						{t("auth.signIn")}
 					</Link>
 				</p>
 			</form>
